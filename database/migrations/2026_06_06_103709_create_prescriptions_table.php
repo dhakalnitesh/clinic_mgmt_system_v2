@@ -45,6 +45,7 @@ return new class extends Migration
 
             $table->longText('advices')->nullable();
             $table->text('cancellation_reason')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

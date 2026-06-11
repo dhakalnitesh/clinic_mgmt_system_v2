@@ -20,23 +20,23 @@ class MedicineCategoryController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name'        => 'required|string|max:100|unique:medicine_categories,name',
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
         ]);
-        MedicineCategory::create($request->validated());
+        MedicineCategory::create($validated);
         return back()->with('success', 'Category created.');
     }
 
     public function update(Request $request, MedicineCategory $category)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name'        => "required|string|max:100|unique:medicine_categories,name,{$category->id}",
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
         ]);
-        $category->update($request->validated());
+        $category->update($validated);
         return back()->with('success', 'Category updated.');
     }
 

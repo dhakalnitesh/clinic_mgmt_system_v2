@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('medicine_id')->nullable()->constrained()->nullOnDelete();
             $table->string('medicine_name')->nullable();
             $table->foreignId('generic_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('dosage')->nullable();
+            $table->string('dosage_instruction')->nullable();
             // e.g. 500mg
 
             $table->enum('frequency', [
@@ -39,10 +39,10 @@ return new class extends Migration
             ])->nullable();
 
 
-            $table->string('duration')->nullable();
+            $table->string('duration_days')->nullable();
             // e.g. 5 days
             $table->string('route', 50)->nullable(); // oral, topical, IV, IM, etc.
-            $table->string('quantity')->nullable();
+            $table->integer('quantity_prescribed')->nullable();
             //eg. 10 tablets/ 1 Bottle 
             $table->integer('quantity_dispensed')->default(0);
 

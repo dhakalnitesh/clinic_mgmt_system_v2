@@ -9,7 +9,7 @@ class UpdateMedicineRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('medicine'));
+        return true;
     }
 
     public function rules(): array

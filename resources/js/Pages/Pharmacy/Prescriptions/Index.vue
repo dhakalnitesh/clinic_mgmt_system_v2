@@ -38,10 +38,11 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-4 p-4 flex flex-wrap items-center gap-3">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-4 p-4 flex flex-wrap items-end gap-3">
       <div class="relative flex-1 min-w-52">
-        <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-        <input v-model="filters.search" @input="debounceSearch" type="text"
+        <label for="filter-rx-search" class="text-xs font-medium text-slate-500 mb-1 block">Search</label>
+        <MagnifyingGlassIcon class="absolute left-3 top-9 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <input id="filter-rx-search" v-model="filters.search" @input="debounceSearch" type="text"
                placeholder="Search prescription number…"
                class="form-input pl-9" />
       </div>
@@ -149,7 +150,11 @@ const props = defineProps({
   summary:       Object,
 })
 
-const filters = ref({ ...props.filters })
+const filters = ref(
+  Object.fromEntries(
+    Object.entries(props.filters).map(([k, v]) => [k, v ?? ''])
+  )
+)
 const hasActiveFilters = computed(() => Object.values(filters.value).some(v => v && v !== ''))
 
 const statusTabs = [

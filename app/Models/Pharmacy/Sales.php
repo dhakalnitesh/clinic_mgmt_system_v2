@@ -65,7 +65,7 @@ class Sales extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(SalesItem::class);
+        return $this->hasMany(SalesItem::class, 'sale_id');
     }
 
     public function salesReturns(): HasMany

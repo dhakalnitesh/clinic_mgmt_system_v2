@@ -1,269 +1,184 @@
 <template>
-  <AuthenticatedLayout :title="`Edit — ${medicine.name}`">
+  <AuthenticatedLayout title="Inventory">
 
-    <!-- ── Header ─────────────────────────────────────────────────── -->
-    <div class="mb-6 flex items-center gap-3">
-      <Link :href="route('pharmacy.medicines.index')"
-            class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
-        <ArrowLeftIcon class="w-5 h-5" />
-      </Link>
+    <!-- Header -->
+    <div class="mb-6 flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Edit Medicine</h1>
-        <p class="text-sm text-slate-500 mt-0.5">{{ medicine.name }}</p>
-      </div>
-
-      <!-- Quick status toggle at top right -->
-      <div class="ml-auto flex items-center gap-2">
-        <span class="text-sm text-slate-500">Active</span>
-        <Toggle v-model="form.is_active" />
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Inventory</h1>
+        <p class="mt-0.5 text-sm text-slate-500">Batch-level stock tracking and expiry management</p>
       </div>
     </div>
 
-    <form @submit.prevent="submit" class="space-y-6">
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+      <SummaryCard label="Total Medicines" :value="summary.total_medicines" icon="pills"    color="slate" />
+      <SummaryCard label="Stock Value"     :value="summary.total_stock_value" icon="currency" color="teal" :currency="true" />
+      <SummaryCard label="Low Stock"       :value="summary.low_stock_count"   icon="warning"  color="amber"
+                   :clickable="true" @click="setExpiry('low')" />
+      <SummaryCard label="Near Expiry (90d)" :value="summary.near_expiry_count" icon="clock" color="orange"
+                   :clickable="true" @click="setExpiry('near')" />
+      <SummaryCard label="Expired"         :value="summary.expired_count"    icon="x-circle" color="red" />
+      <SummaryCard label="Out of Stock"    :value="summary.out_of_stock"     icon="warning"  color="red" />
+    </div>
 
-      <!-- ── Section: Identity ──────────────────────────────────────── -->
-      <FormSection title="Drug Identity" description="Core medicine details and classification">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <!-- Filters -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-4 p-4 flex flex-wrap items-end gap-3">
+      <div class="relative flex-1 min-w-52">
+        <label for="filter-inv-search" class="text-xs font-medium text-slate-500 mb-1 block">Search</label>
+        <MagnifyingGlassIcon class="absolute left-3 top-9 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <input id="filter-inv-search" v-model="filters.search" @input="debounceSearch" type="text"
+               placeholder="Search medicine name…"
+               class="form-input pl-9" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="filter-inv-expiry" class="text-xs font-medium text-slate-500">Expiry Status</label>
+        <select id="filter-inv-expiry" v-model="filters.expiry" @change="applyFilters" class="form-select w-40">
+          <option value="">All Expiry</option>
+          <option value="near">Near Expiry (90d)</option>
+          <option value="critical">Critical (30d)</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+      <button v-if="hasActiveFilters" @click="clearFilters" class="text-sm text-slate-500 hover:text-slate-700 underline">Clear</button>
+    </div>
 
-          <FormField label="Brand / Trade Name" required :error="form.errors.name" class="md:col-span-2">
-            <input v-model="form.name" type="text" class="form-input" />
-          </FormField>
+    <!-- Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-50/80">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Medicine</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Batch</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Supplier</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wide">Quantity</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wide">Purchase</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wide">Sale</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Expiry</th>
+              <th class="px-4 py-3 w-12"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <template v-if="batches.data.length">
+              <tr v-for="b in batches.data" :key="b.id"
+                  class="hover:bg-slate-50/60 transition-colors">
 
-          <FormField label="Generic (INN) Name" required :error="form.errors.generic_id">
-            <Combobox v-model="form.generic_id" :options="generics" label-key="name" value-key="id" />
-          </FormField>
+                <td class="px-4 py-3">
+                  <div class="font-semibold text-slate-800">{{ b.medicine_name }}</div>
+                  <div class="text-xs text-slate-400 mt-0.5">
+                    {{ b.strength }} · {{ b.form }} · {{ b.unit }}
+                    <span v-if="b.category" class="ml-1 text-slate-300">({{ b.category }})</span>
+                  </div>
+                </td>
 
-          <FormField label="Category" required :error="form.errors.medicine_category_id">
-            <select v-model="form.medicine_category_id" class="form-select">
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-            </select>
-          </FormField>
+                <td class="px-4 py-3">
+                  <Link :href="route('pharmacy.inventory.batch', b.id)"
+                        class="font-mono text-xs text-teal-700 hover:text-teal-900 transition">
+                    {{ b.batch_number }}
+                  </Link>
+                </td>
 
-          <FormField label="Dosage Form" required :error="form.errors.form">
-            <div class="grid grid-cols-4 gap-2">
-              <button v-for="f in forms" :key="f" type="button"
-                      @click="form.form = f"
-                      :class="[
-                        'py-2 px-3 rounded-lg text-xs font-medium border transition-all',
-                        form.form === f
-                          ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-teal-400',
-                      ]">
-                {{ capitalize(f) }}
-              </button>
-            </div>
-          </FormField>
+                <td class="px-4 py-3 text-xs text-slate-600">{{ b.supplier ?? '—' }}</td>
 
-          <FormField label="Strength" :error="form.errors.strength">
-            <input v-model="form.strength" type="text" class="form-input" />
-          </FormField>
+                <td class="px-4 py-3 text-right font-mono font-semibold"
+                    :class="b.quantity_available <= 0 ? 'text-red-600' : 'text-slate-900'">
+                  {{ b.quantity_available }}
+                  <span class="text-xs text-slate-400 font-normal">/ {{ b.quantity_received }}</span>
+                </td>
 
-          <FormField label="Unit of Measure" required :error="form.errors.medicine_unit_id">
-            <select v-model="form.medicine_unit_id" class="form-select">
-              <option v-for="unit in units" :key="unit.id" :value="unit.id">
-                {{ unit.name }} ({{ unit.abbreviation }})
-              </option>
-            </select>
-          </FormField>
+                <td class="px-4 py-3 text-right font-mono text-slate-600">{{ formatCurrency(b.purchase_price) }}</td>
+                <td class="px-4 py-3 text-right font-mono text-slate-600">{{ formatCurrency(b.sale_price) }}</td>
 
-          <FormField label="Manufacturer" :error="form.errors.manufacturer">
-            <input v-model="form.manufacturer" type="text" class="form-input" />
-          </FormField>
+                <td class="px-4 py-3">
+                  <ExpiryTag :date="b.expiry_date" :days="b.days_to_expiry" :status="b.expiry_status" />
+                </td>
 
-          <FormField label="Barcode" :error="form.errors.barcode">
-            <input v-model="form.barcode" type="text" class="form-input font-mono" />
-          </FormField>
-
-        </div>
-      </FormSection>
-
-      <!-- ── Section: Pricing ───────────────────────────────────────── -->
-      <FormSection title="Pricing" description="Purchase cost, selling price and tax">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-
-          <FormField label="Purchase Price" required :error="form.errors.purchase_price">
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Rs</span>
-              <input v-model="form.purchase_price" type="number" step="0.01" min="0" class="form-input pl-9 font-mono" />
-            </div>
-          </FormField>
-
-          <FormField label="Sale Price" required :error="form.errors.sale_price">
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Rs</span>
-              <input v-model="form.sale_price" type="number" step="0.01" min="0" class="form-input pl-9 font-mono" />
-            </div>
-            <template #hint>
-              <span v-if="markupPercent !== null" class="text-xs text-slate-500">
-                Markup: <span :class="markupPercent >= 0 ? 'text-emerald-600' : 'text-red-600'" class="font-semibold">
-                  {{ markupPercent }}%
-                </span>
-              </span>
+                <td class="px-4 py-3">
+                  <ActionMenu>
+                    <ActionItem :href="route('pharmacy.inventory.batch', b.id)" icon="eye">Detail</ActionItem>
+                  </ActionMenu>
+                </td>
+              </tr>
             </template>
-          </FormField>
-
-          <FormField label="MRP" :error="form.errors.mrp">
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Rs</span>
-              <input v-model="form.mrp" type="number" step="0.01" min="0" class="form-input pl-9 font-mono" />
-            </div>
-          </FormField>
-
-          <FormField label="Tax %" :error="form.errors.tax_percent">
-            <div class="relative">
-              <input v-model="form.tax_percent" type="number" step="0.01" min="0" max="100" class="form-input pr-8 font-mono" />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
-            </div>
-          </FormField>
-
-        </div>
-      </FormSection>
-
-      <!-- ── Section: Stock Control ─────────────────────────────────── -->
-      <FormSection title="Stock Control" description="Reorder alerts and shelf placement">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-          <FormField label="Reorder Level" required :error="form.errors.reorder_level">
-            <input v-model="form.reorder_level" type="number" min="0" class="form-input font-mono" />
-          </FormField>
-
-          <FormField label="Reorder Quantity" required :error="form.errors.reorder_quantity">
-            <input v-model="form.reorder_quantity" type="number" min="1" class="form-input font-mono" />
-          </FormField>
-
-          <FormField label="Shelf / Rack Location" :error="form.errors.shelf_location">
-            <input v-model="form.shelf_location" type="text" class="form-input font-mono" />
-          </FormField>
-
-        </div>
-      </FormSection>
-
-      <!-- ── Section: Clinical Flags ────────────────────────────────── -->
-      <FormSection title="Clinical Flags">
-        <div class="flex flex-col gap-4">
-          <ToggleField v-model="form.is_prescription_required"
-                       label="Prescription Required"
-                       description="Requires a valid prescription to dispense" />
-          <ToggleField v-model="form.is_controlled"
-                       label="Controlled Substance"
-                       description="Controlled drug — requires additional logging and approval" />
-        </div>
-      </FormSection>
-
-      <!-- ── Section: Notes ─────────────────────────────────────────── -->
-      <FormSection title="Notes">
-        <textarea v-model="form.notes" rows="3" class="form-input resize-none" />
-      </FormSection>
-
-      <!-- ── Dirty Warning ─────────────────────────────────────────── -->
-      <div v-if="form.isDirty"
-           class="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-        <ExclamationTriangleIcon class="w-4 h-4 shrink-0" />
-        You have unsaved changes
+            <tr v-else>
+              <td colspan="8" class="py-16 text-center text-slate-400">
+                <div class="flex flex-col items-center gap-3">
+                  <BeakerIcon class="w-12 h-12 opacity-30" />
+                  <p class="text-sm font-medium">No inventory records found</p>
+                  <div v-if="hasActiveFilters" class="text-xs">
+                    Try adjusting your filters or
+                    <button @click="clearFilters" class="text-teal-600 underline">clear all filters</button>
+                  </div>
+                  <Link v-else :href="route('pharmacy.grn.create')" class="text-xs text-teal-600 underline">
+                    Receive stock via GRN
+                  </Link>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- ── Form Actions ───────────────────────────────────────────── -->
-      <div class="flex items-center justify-between gap-3 pt-2 pb-6">
-        <button type="button" @click="confirmDelete"
-                class="text-sm text-red-600 hover:text-red-800 hover:underline flex items-center gap-1">
-          <TrashIcon class="w-4 h-4" />
-          Delete medicine
-        </button>
-        <div class="flex items-center gap-3">
-          <Link :href="route('pharmacy.medicines.index')"
-                class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white rounded-lg border border-slate-200 hover:bg-slate-50 transition">
-            Cancel
-          </Link>
-          <button type="submit" :disabled="form.processing || !form.isDirty"
-                  class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-lg shadow-sm hover:bg-teal-700 disabled:opacity-50 active:scale-95 transition-all">
-            <ArrowPathIcon v-if="form.processing" class="w-4 h-4 animate-spin" />
-            <CheckIcon v-else class="w-4 h-4" />
-            Save Changes
-          </button>
-        </div>
+      <!-- Pagination -->
+      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between">
+        <p class="text-xs text-slate-500">
+          Showing {{ batches.from }}–{{ batches.to }} of {{ batches.total }} batches
+        </p>
+        <Pagination :links="batches.links" />
       </div>
-
-    </form>
-
-    <!-- Delete Modal -->
-    <ConfirmModal
-      v-model="showDeleteModal"
-      title="Delete Medicine"
-      :message="`Delete '${medicine.name}'? This cannot be undone.`"
-      confirm-label="Delete"
-      confirm-class="bg-red-600 hover:bg-red-700"
-      @confirm="deleteMedicine"
-    />
+    </div>
 
   </AuthenticatedLayout>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Link, useForm, router } from '@inertiajs/vue3'
-import {
-  ArrowLeftIcon, ArrowPathIcon, CheckIcon,
-  TrashIcon, ExclamationTriangleIcon,
-} from '@heroicons/vue/24/outline'
+import { Link, router } from '@inertiajs/vue3'
+import { useDebounceFn } from '@vueuse/core'
+import { MagnifyingGlassIcon, BeakerIcon } from '@heroicons/vue/24/outline'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import FormSection  from '@/Components/FormSection.vue'
-import FormField    from '@/Components/FormField.vue'
-import ToggleField  from '@/Components/ToggleField.vue'
-import Toggle       from '@/Components/Toggle.vue'
-import Combobox     from '@/Components/Combobox.vue'
-import ConfirmModal from '@/Components/ConfirmModal.vue'
+import SummaryCard  from '@/Components/SummaryCard.vue'
+import ExpiryTag    from '@/Components/Pharmacy/ExpiryTag.vue'
+import Pagination   from '@/Components/Pagination.vue'
+import ActionMenu   from '@/Components/ActionMenu.vue'
+import ActionItem   from '@/Components/ActionItem.vue'
 
 const props = defineProps({
-  medicine:   Object,
-  categories: Array,
-  generics:   Array,
-  units:      Array,
-  forms:      Array,
+  batches:  Object,
+  filters:  Object,
+  summary:  Object,
 })
 
-const showDeleteModal = ref(false)
+const filters = ref(
+  Object.fromEntries(
+    Object.entries(props.filters).map(([k, v]) => [k, v ?? ''])
+  )
+)
 
-const form = useForm({
-  medicine_category_id:     props.medicine.medicine_category_id,
-  generic_id:               props.medicine.generic_id,
-  medicine_unit_id:         props.medicine.medicine_unit_id,
-  name:                     props.medicine.name,
-  strength:                 props.medicine.strength ?? '',
-  form:                     props.medicine.form,
-  manufacturer:             props.medicine.manufacturer ?? '',
-  barcode:                  props.medicine.barcode ?? '',
-  hsn_code:                 props.medicine.hsn_code ?? '',
-  purchase_price:           props.medicine.purchase_price,
-  sale_price:               props.medicine.sale_price,
-  mrp:                      props.medicine.mrp ?? '',
-  tax_percent:              props.medicine.tax_percent,
-  reorder_level:            props.medicine.reorder_level,
-  reorder_quantity:         props.medicine.reorder_quantity,
-  shelf_location:           props.medicine.shelf_location ?? '',
-  is_prescription_required: props.medicine.is_prescription_required,
-  is_controlled:            props.medicine.is_controlled,
-  is_active:                props.medicine.is_active,
-  notes:                    props.medicine.notes ?? '',
-})
+const hasActiveFilters = computed(() =>
+  Object.values(filters.value).some(v => v && v !== '')
+)
 
-const markupPercent = computed(() => {
-  const cost = parseFloat(form.purchase_price)
-  const sell = parseFloat(form.sale_price)
-  if (!cost || cost <= 0) return null
-  return ((sell - cost) / cost * 100).toFixed(1)
-})
-
-function submit() {
-  form.put(route('pharmacy.medicines.update', props.medicine.id))
+function applyFilters() {
+  router.get(route('pharmacy.inventory.index'), filters.value, {
+    preserveState: true,
+    replace: true,
+  })
 }
 
-function confirmDelete() { showDeleteModal.value = true }
+const debounceSearch = useDebounceFn(applyFilters, 350)
 
-function deleteMedicine() {
-  router.delete(route('pharmacy.medicines.destroy', props.medicine.id))
+function clearFilters() {
+  filters.value = {}
+  applyFilters()
 }
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ')
+function setExpiry(val) {
+  filters.value.expiry = val
+  applyFilters()
+}
+
+function formatCurrency(v) {
+  return new Intl.NumberFormat('en-NP', { style: 'currency', currency: 'NPR' }).format(v ?? 0)
 }
 </script>

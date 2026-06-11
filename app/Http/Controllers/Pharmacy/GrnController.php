@@ -15,6 +15,45 @@ use Inertia\Response;
 
 class GrnController extends Controller
 {
+    // ── Index ──────────────────────────────────────────────────────
+    public function index(Request $request): Response
+    {
+        $grns = GoodsReceivedNote::query()
+            ->with(['supplier', 'receivedBy'])
+            ->when($request->search, fn ($q) =>
+                $q->where('grn_number', 'like', "%{$request->search}%")
+                    ->orWhereHas('supplier', fn ($s) => $s->where('name', 'like', "%{$request->search}%"))
+            )
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->supplier, fn ($q) => $q->where('supplier_id', $request->supplier))
+            ->orderByDesc('received_date')
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn ($grn) => [
+                'id'             => $grn->id,
+                'grn_number'     => $grn->grn_number,
+                'received_date'  => $grn->received_date->toDateString(),
+                'supplier'       => $grn->supplier?->name,
+                'supplier_id'    => $grn->supplier_id,
+                'status'         => $grn->status,
+                'total_amount'   => $grn->total_amount,
+                'received_by'    => $grn->receivedBy?->name,
+                'items_count'    => $grn->items()->count(),
+            ]);
+
+        return Inertia::render('Pharmacy/GRN/Index', [
+            'grns'      => $grns,
+            'suppliers' => Supplier::active()->orderBy('name')->get(['id', 'name']),
+            'filters'   => $request->only(['search', 'status', 'supplier']),
+            'summary'   => [
+                'total'    => GoodsReceivedNote::count(),
+                'pending'  => GoodsReceivedNote::where('status', 'pending')->count(),
+                'verified' => GoodsReceivedNote::where('status', 'verified')->count(),
+                'posted'   => GoodsReceivedNote::where('status', 'posted')->count(),
+            ],
+        ]);
+    }
+
     // ── Create ─────────────────────────────────────────────────────
     public function create(Request $request): Response
     {

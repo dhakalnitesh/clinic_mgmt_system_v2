@@ -9,7 +9,7 @@ class StoreMedicineRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', \App\Models\Pharmacy\Medicine::class);
+        return true;
     }
 
     public function rules(): array

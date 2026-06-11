@@ -39,34 +39,46 @@
         </div>
 
         <!-- Category Filter -->
-        <select v-model="filters.category" @change="applyFilters"
-                class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
-          <option value="">All Categories</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-        </select>
+        <div class="flex flex-col gap-1">
+          <label for="filter-category" class="text-xs font-medium text-slate-500">Category</label>
+          <select id="filter-category" v-model="filters.category" @change="applyFilters"
+                  class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
+            <option value="">All Categories</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
 
         <!-- Form Filter -->
-        <select v-model="filters.form" @change="applyFilters"
-                class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
-          <option value="">All Forms</option>
-          <option v-for="form in medicineFormsList" :key="form" :value="form">{{ capitalize(form) }}</option>
-        </select>
+        <div class="flex flex-col gap-1">
+          <label for="filter-form" class="text-xs font-medium text-slate-500">Form</label>
+          <select id="filter-form" v-model="filters.form" @change="applyFilters"
+                  class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
+            <option value="">All Forms</option>
+            <option v-for="form in medicineFormsList" :key="form" :value="form">{{ capitalize(form) }}</option>
+          </select>
+        </div>
 
         <!-- Status Filter -->
-        <select v-model="filters.status" @change="applyFilters"
-                class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <div class="flex flex-col gap-1">
+          <label for="filter-status" class="text-xs font-medium text-slate-500">Status</label>
+          <select id="filter-status" v-model="filters.status" @change="applyFilters"
+                  class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
 
         <!-- Stock Filter -->
-        <select v-model="filters.stock" @change="applyFilters"
-                class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
-          <option value="">All Stock</option>
-          <option value="low">Low Stock</option>
-          <option value="out">Out of Stock</option>
-        </select>
+        <div class="flex flex-col gap-1">
+          <label for="filter-stock" class="text-xs font-medium text-slate-500">Stock</label>
+          <select id="filter-stock" v-model="filters.stock" @change="applyFilters"
+                  class="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
+            <option value="">All Stock</option>
+            <option value="low">Low Stock</option>
+            <option value="out">Out of Stock</option>
+          </select>
+        </div>
 
         <!-- Clear Filters -->
         <button v-if="hasActiveFilters" @click="clearFilters"
@@ -241,7 +253,11 @@ const props = defineProps({
 })
 
 // ── State ──────────────────────────────────────────────────────────
-const filters = ref({ ...props.filters })
+const filters = ref(
+  Object.fromEntries(
+    Object.entries(props.filters).map(([k, v]) => [k, v ?? ''])
+  )
+)
 
 const deleteModal = ref({ show: false, medicine: null })
 

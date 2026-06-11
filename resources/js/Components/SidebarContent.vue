@@ -106,7 +106,7 @@ const props = defineProps({
     isMobile: Boolean,
 })
 
-const emit = defineEmits(['toggle', 'close'])
+const emit = defineEmits(['toggle', 'close', 'module-click'])
 
 const page = usePage()
 const pageUrl = page.url || '/'
@@ -170,6 +170,11 @@ watch(() => page.url, (url) => {
 }, { immediate: true })
 
 const toggleMenu = (name) => {
+    if (props.collapsed) {
+        emit('toggle')
+        openMenu.value = name
+        return
+    }
     openMenu.value = openMenu.value === name ? null : name
 }
 

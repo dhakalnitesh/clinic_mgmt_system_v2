@@ -22,27 +22,27 @@ class GenericController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name'                => 'required|string|max:150|unique:generics,name',
             'pharmacological_class'=> 'nullable|string|max:100',
             'description'         => 'nullable|string',
             'is_controlled'       => 'boolean',
             'is_active'           => 'boolean',
         ]);
-        Generic::create($request->validated());
+        Generic::create($validated);
         return back()->with('success', 'Generic created.');
     }
 
     public function update(Request $request, Generic $generic)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name'                => "required|string|max:150|unique:generics,name,{$generic->id}",
             'pharmacological_class'=> 'nullable|string|max:100',
             'description'         => 'nullable|string',
             'is_controlled'       => 'boolean',
             'is_active'           => 'boolean',
         ]);
-        $generic->update($request->validated());
+        $generic->update($validated);
         return back()->with('success', 'Generic updated.');
     }
 

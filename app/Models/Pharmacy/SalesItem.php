@@ -33,7 +33,7 @@ class SalesItem extends Model
 
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sales::class);
+        return $this->belongsTo(Sales::class, 'sale_id');
     }
 
     public function medicine(): BelongsTo

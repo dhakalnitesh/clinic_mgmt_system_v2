@@ -23,28 +23,40 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-4 p-4 flex flex-wrap items-center gap-3">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-4 p-4 flex flex-wrap items-end gap-3">
       <div class="relative flex-1 min-w-52">
+        <label for="filter-sales-search" class="text-xs font-medium text-slate-500 mb-1 block">Search</label>
         <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-        <input v-model="filters.search" @input="debounceSearch" type="text"
+        <input id="filter-sales-search" v-model="filters.search" @input="debounceSearch" type="text"
                placeholder="Search invoice number…" class="form-input pl-9" />
       </div>
-      <select v-model="filters.status" @change="applyFilters" class="form-select w-36">
-        <option value="">All Status</option>
-        <option value="completed">Completed</option>
-        <option value="returned">Returned</option>
-        <option value="partial_return">Partial Return</option>
-      </select>
-      <select v-model="filters.type" @change="applyFilters" class="form-select w-36">
-        <option value="">All Types</option>
-        <option value="counter">Counter</option>
-        <option value="prescription">Prescription</option>
-        <option value="opd">OPD</option>
-        <option value="ipd">IPD</option>
-      </select>
-      <input v-model="filters.date_from" @change="applyFilters" type="date" class="form-input w-36" />
-      <span class="text-slate-400 text-sm">to</span>
-      <input v-model="filters.date_to" @change="applyFilters" type="date" class="form-input w-36" />
+      <div class="flex flex-col gap-1">
+        <label for="filter-sales-status" class="text-xs font-medium text-slate-500">Status</label>
+        <select id="filter-sales-status" v-model="filters.status" @change="applyFilters" class="form-select w-36">
+          <option value="">All Status</option>
+          <option value="completed">Completed</option>
+          <option value="returned">Returned</option>
+          <option value="partial_return">Partial Return</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="filter-sales-type" class="text-xs font-medium text-slate-500">Type</label>
+        <select id="filter-sales-type" v-model="filters.type" @change="applyFilters" class="form-select w-36">
+          <option value="">All Types</option>
+          <option value="counter">Counter</option>
+          <option value="prescription">Prescription</option>
+          <option value="opd">OPD</option>
+          <option value="ipd">IPD</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="filter-sales-from" class="text-xs font-medium text-slate-500">From</label>
+        <input id="filter-sales-from" v-model="filters.date_from" @change="applyFilters" type="date" class="form-input w-36" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="filter-sales-to" class="text-xs font-medium text-slate-500">To</label>
+        <input id="filter-sales-to" v-model="filters.date_to" @change="applyFilters" type="date" class="form-input w-36" />
+      </div>
       <button v-if="hasActiveFilters" @click="clearFilters" class="text-sm text-slate-500 hover:text-slate-700 underline">Clear</button>
     </div>
 
@@ -138,7 +150,11 @@ import ActionMenu   from '@/Components/ActionMenu.vue'
 import ActionItem   from '@/Components/ActionItem.vue'
 
 const props = defineProps({ sales: Object, filters: Object, summary: Object })
-const filters = ref({ ...props.filters })
+const filters = ref(
+  Object.fromEntries(
+    Object.entries(props.filters).map(([k, v]) => [k, v ?? ''])
+  )
+)
 const hasActiveFilters = computed(() => Object.values(filters.value).some(v => v && v !== ''))
 
 function applyFilters() {

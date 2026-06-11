@@ -65,6 +65,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Super Admin',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('Admin@123'),
+            'email_verified_at' => now(),
         ]);
         $adminUser->assignRole('admin');
 
@@ -72,6 +73,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Staff User',
             'email' => 'staff@gmail.com',
             'password' => Hash::make('Staff@123'),
+            'email_verified_at' => now(),
         ]);
         $staffUser->assignRole('staff');
 
@@ -88,6 +90,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Dr. Ram Sharma',
             'email' => 'doctor@gmail.com',
             'password' => Hash::make('Doctor@123'),
+            'email_verified_at' => now(),
         ]);
         $doctorUser->assignRole('doctor');
 
