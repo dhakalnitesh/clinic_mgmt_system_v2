@@ -20,9 +20,6 @@ return new class extends Migration
             $table->foreignId('medicine_id')->nullable()->constrained()->nullOnDelete();
             $table->string('medicine_name')->nullable();
             $table->foreignId('generic_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('dosage_instruction')->nullable();
-            // e.g. 500mg
-
             $table->enum('frequency', [
                 'once_daily',
                 'twice_daily',
@@ -48,8 +45,8 @@ return new class extends Migration
 
             $table->boolean('is_substitutable')->default(true); // generic substitution allowed
             $table->enum('status', ['pending', 'partial', 'dispensed'])->default('pending');
+            $table->text('dosage_instruction')->nullable();
             $table->text('instructions')->nullable();
-            // e.g. after food
             $table->timestamps();
         });
     }

@@ -42,17 +42,17 @@ const navGroups = [
       { id: 'prescriptions',  label: 'Prescriptions',   icon: 'ti-pill',               route: 'doctor.prescriptions.index' },
     ],
   },
-  {
-    group: 'Laboratory',
-    items: [
-      { id: 'lab-orders',     label: 'Lab Orders',      icon: 'ti-flask',              route: 'doctor.lab.orders' },
-      { id: 'lab-results',    label: 'Lab Results',     icon: 'ti-microscope',         route: 'doctor.lab.results',         badge: 'pendingLabs' },
-    ],
-  },
+  // {
+  //   group: 'Laboratory',
+  //   items: [
+  //     { id: 'lab-orders',     label: 'Lab Orders',      icon: 'ti-flask',              route: 'doctor.lab.orders' },
+  //     { id: 'lab-results',    label: 'Lab Results',     icon: 'ti-microscope',         route: 'doctor.lab.results',         badge: 'pendingLabs' },
+  //   ],
+  // },
   {
     group: null,
     items: [
-      { id: 'followups',      label: 'Follow Ups',      icon: 'ti-calendar-repeat',    route: 'doctor.followups.index',     badge: 'followUps' },
+      // { id: 'followups',      label: 'Follow Ups',      icon: 'ti-calendar-repeat',    route: 'doctor.followups.index',     badge: 'followUps' },
       { id: 'profile',        label: 'Profile',         icon: 'ti-user-circle',        route: 'doctor.profile' },
     ],
   },

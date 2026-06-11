@@ -83,8 +83,12 @@ const statusClass = (status) => {
                             <span class="font-medium">{{ consultation.doctor?.name }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Consulted At</span>
+                            <span class="text-gray-600">Consulted At (AD)</span>
                             <span class="font-medium">{{ consultation.consulted_at ? new Date(consultation.consulted_at).toLocaleString() : '-' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Created (BS)</span>
+                            <span class="font-medium">{{ consultation.created_at_bs || '-' }}</span>
                         </div>
                     </div>
                 </div>
@@ -144,7 +148,7 @@ const statusClass = (status) => {
             <div v-if="consultation.prescriptions?.length" class="bg-white rounded-xl shadow border border-gray-200 p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Prescriptions</h2>
                 <div v-for="prescription in consultation.prescriptions" :key="prescription.id" class="mb-4 last:mb-0">
-                    <div class="text-sm text-gray-600 mb-2">Prescribed: {{ prescription.prescribed_at ? new Date(prescription.prescribed_at).toLocaleDateString() : '-' }}</div>
+                    <div class="text-sm text-gray-600 mb-2">Prescribed: {{ prescription.prescribed_at ?? '-' }} <span v-if="prescription.created_at_bs" class="text-gray-400">(BS: {{ prescription.created_at_bs }})</span></div>
                     <table class="min-w-full">
                         <thead>
                             <tr class="bg-gray-50">

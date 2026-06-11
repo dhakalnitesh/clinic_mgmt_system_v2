@@ -69,7 +69,9 @@ const props = defineProps({
                                         {{ c.consultation_status || 'N/A' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm">{{ c.created_at ? new Date(c.created_at).toLocaleDateString() : '-' }}</td>
+                                <td class="px-6 py-4 text-sm">{{ c.created_at ? new Date(c.created_at).toLocaleDateString() : '-' }}
+                                    <span v-if="c.created_at_bs" class="text-xs text-gray-400 block">BS: {{ c.created_at_bs }}</span>
+                                </td>
                                 <td class="px-6 py-4 text-right">
                                     <button @click="router.visit(route('consultations.show', c.id))"
                                         class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200">

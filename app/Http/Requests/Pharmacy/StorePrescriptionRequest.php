@@ -19,6 +19,7 @@ class StorePrescriptionRequest extends FormRequest
 
             'items'                          => ['required', 'array', 'min:1'],
             'items.*.medicine_id'            => ['nullable', 'exists:medicines,id'],
+            'items.*.medicine_name'          => ['required_without:items.*.medicine_id', 'string', 'max:255'],
             'items.*.generic_id'             => ['nullable', 'exists:generics,id'],
             'items.*.dosage_instruction'     => ['nullable', 'string', 'max:200'],
             'items.*.frequency'              => ['nullable', 'string'],

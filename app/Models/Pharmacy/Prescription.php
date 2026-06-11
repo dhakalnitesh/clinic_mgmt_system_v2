@@ -34,7 +34,7 @@ class Prescription extends Model
     ];
 
     protected $casts = [
-        'prescribed_at' => 'datetime',
+        'prescribed_at' => 'date',
         'dispensed_at'  => 'datetime',
     ];
 

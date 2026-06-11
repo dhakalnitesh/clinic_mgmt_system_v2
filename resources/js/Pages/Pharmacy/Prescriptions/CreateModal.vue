@@ -12,20 +12,28 @@
 
       <div class="px-6 py-4 max-h-[70vh] overflow-y-auto space-y-4">
 
-        <p v-if="errors.patient_id" class="text-red-500 text-sm">{{ errors.patient_id }}</p>
-        <p v-if="errors.error" class="text-red-500 text-sm">{{ errors.error }}</p>
+        <!-- General errors -->
+        <div v-if="errors.patient_id || errors.doctor_id || errors.prescription_date || errors.items || errors.error"
+             class="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+          <p v-if="errors.error" class="text-sm text-red-600">{{ errors.error }}</p>
+          <p v-if="errors.patient_id" class="text-sm text-red-600">{{ errors.patient_id }}</p>
+          <p v-if="errors.doctor_id" class="text-sm text-red-600">{{ errors.doctor_id }}</p>
+          <p v-if="errors.prescription_date" class="text-sm text-red-600">{{ errors.prescription_date }}</p>
+          <p v-if="errors.items" class="text-sm text-red-600">{{ errors.items }}</p>
+        </div>
 
         <!-- Date / Patient / Doctor -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="text-sm font-medium text-gray-700">Date (BS)</label>
+            <label class="text-sm font-medium text-gray-700">Date (BS) <span class="text-red-500">*</span></label>
             <NepaliDatepicker v-model="form.prescription_date" placeholder="Select date" />
             <p v-if="form.errors.prescription_date" class="text-xs text-red-500 mt-0.5">{{ form.errors.prescription_date }}</p>
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-700">Doctor</label>
+            <label class="text-sm font-medium text-gray-700">Doctor <span class="text-red-500">*</span></label>
             <select v-model="form.doctor_id"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition"
+                    :class="{ 'border-red-400': form.errors.doctor_id }">
               <option value="">Select Doctor</option>
               <option v-for="d in doctors" :key="d.id" :value="d.id">Dr. {{ d.name }} — {{ d.specialization || 'N/A' }}</option>
             </select>
@@ -33,14 +41,15 @@
           </div>
           <div class="md:col-span-2">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-gray-700">Patient</label>
+              <label class="text-sm font-medium text-gray-700">Patient <span class="text-red-500">*</span></label>
               <button type="button" @click="showPatientModal = true"
                       class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-medium transition">
                 <i class="fas fa-plus"></i> Patient
               </button>
             </div>
             <select v-model="form.patient_id"
-                    class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition">
+                    class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition"
+                    :class="{ 'border-red-400': form.errors.patient_id }">
               <option value="">Select Patient</option>
               <option v-for="p in patients" :key="p.id" :value="p.id">{{ p.name }} — {{ p.phone || 'N/A' }}</option>
             </select>
@@ -57,37 +66,55 @@
 
         <!-- Medicines -->
         <div>
-          <label class="text-sm font-medium text-gray-700 mb-1.5 block">Medicines</label>
-          <div class="mb-2">
-            <DrugSearchInput
-              placeholder="Search medicine to add…"
-              :search-url="route('pharmacy.medicines.search')"
-              @select="addItem"
-            />
-          </div>
-          <p v-if="form.errors.items" class="text-xs text-red-600 mb-2">{{ form.errors.items }}</p>
+          <label class="text-sm font-medium text-gray-700 mb-1.5 block">Medicines <span class="text-red-500">*</span></label>
 
-          <div class="space-y-2">
+          <!-- Add medicine row: search + manual -->
+          <div class="flex gap-2">
+            <div class="flex-1">
+              <DrugSearchInput
+                placeholder="Search medicine…"
+                :search-url="route('pharmacy.medicines.search')"
+                @select="addItem"
+              />
+            </div>
+            <div class="flex-1 flex gap-1">
+              <input v-model="manualMedicineName" type="text" placeholder="Or type name…"
+                     @keyup.enter="addManualItem"
+                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+              <button type="button" @click="addManualItem"
+                      :disabled="!manualMedicineName.trim()"
+                      class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 shrink-0 transition">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <p v-if="form.errors.items" class="text-xs text-red-600 mt-1">{{ form.errors.items }}</p>
+
+          <div class="space-y-2 mt-3">
             <div v-for="(item, idx) in form.items" :key="item._key"
                  class="border border-gray-200 rounded-lg overflow-hidden">
               <div class="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
                 <div class="flex items-center gap-2 min-w-0">
                   <span class="w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">{{ idx + 1 }}</span>
-                  <span class="font-medium text-gray-800 text-sm truncate">{{ item.medicine_name }}</span>
+                  <span class="font-medium text-gray-800 text-sm truncate">{{ item.medicine_name || 'Manual entry' }}</span>
                   <span v-if="item.strength" class="text-xs text-gray-500">{{ item.strength }}</span>
                 </div>
                 <button type="button" @click="removeItem(idx)" class="text-gray-400 hover:text-red-500 text-lg leading-none">&times;</button>
               </div>
               <div class="p-3 grid grid-cols-4 gap-2">
                 <div>
-                  <label class="text-xs text-gray-500">Qty</label>
+                  <label class="text-xs text-gray-500">Qty <span class="text-red-500">*</span></label>
                   <input v-model.number="item.quantity_prescribed" type="number" min="1"
-                         class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm font-mono focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none" />
+                         class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm font-mono focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none"
+                         :class="{ 'border-red-400': form.errors[`items.${idx}.quantity_prescribed`] }" />
                   <p v-if="form.errors[`items.${idx}.quantity_prescribed`]" class="text-xs text-red-500">{{ form.errors[`items.${idx}.quantity_prescribed`] }}</p>
                 </div>
                 <div>
                   <label class="text-xs text-gray-500">Freq</label>
-                  <select v-model="item.frequency" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none">
+                  <select v-model="item.frequency"
+                          class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none">
+                    <option value="">—</option>
                     <option v-for="f in frequencies" :key="f.value" :value="f.value">{{ f.label }}</option>
                   </select>
                 </div>
@@ -98,7 +125,8 @@
                 </div>
                 <div>
                   <label class="text-xs text-gray-500">Route</label>
-                  <select v-model="item.route" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none">
+                  <select v-model="item.route"
+                          class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none">
                     <option value="oral">Oral</option>
                     <option value="topical">Topical</option>
                     <option value="iv">IV</option>
@@ -117,7 +145,7 @@
           <div v-if="!form.items.length"
                class="border-2 border-dashed border-gray-200 rounded-lg py-8 text-center text-gray-400 mt-2">
             <i class="fas fa-pills text-2xl mb-1 opacity-40"></i>
-            <p class="text-sm">Search above to add medicines</p>
+            <p class="text-sm">Search or type a medicine name above</p>
           </div>
         </div>
       </div>
@@ -128,10 +156,10 @@
                 class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium transition">
           Cancel
         </button>
-        <button type="button" :disabled="form.processing || !form.items.length" @click="submit"
+        <button type="button" :disabled="form.processing" @click="submit"
                 class="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 text-sm font-medium transition">
           <i v-if="form.processing" class="fas fa-spinner fa-spin mr-1"></i>
-          Save Prescription
+          {{ form.processing ? 'Saving…' : 'Save Prescription' }}
         </button>
       </div>
     </div>
@@ -151,12 +179,14 @@ const props = defineProps({
   patients: Array,
   doctors: Array,
   generics: Array,
+  todayBs: { type: String, default: '' },
 })
 
 const emit = defineEmits(['close', 'success'])
 const errors = usePage().props.errors
 
 const showPatientModal = ref(false)
+const manualMedicineName = ref('')
 
 let keyCounter = 0
 
@@ -175,7 +205,7 @@ const frequencies = [
 ]
 
 const form = useForm({
-  prescription_date: '',
+  prescription_date: props.todayBs || '',
   patient_id:        '',
   doctor_id:         '',
   encounter_id:      '',
@@ -201,6 +231,26 @@ function addItem(med) {
   })
 }
 
+function addManualItem() {
+  const name = manualMedicineName.value.trim()
+  if (!name) return
+  form.items.push({
+    _key: keyCounter++,
+    medicine_id: null,
+    medicine_name: name,
+    strength: null,
+    generic_id: null,
+    dosage_instruction: '',
+    frequency: 'twice_daily',
+    duration_days: 7,
+    route: 'oral',
+    quantity_prescribed: 14,
+    is_substitutable: true,
+    instructions: '',
+  })
+  manualMedicineName.value = ''
+}
+
 function removeItem(idx) { form.items.splice(idx, 1) }
 
 function addPatient(patient) {
@@ -211,7 +261,7 @@ function addPatient(patient) {
 function submit() {
   form.transform(data => ({
     ...data,
-    items: data.items.map(({ _key, medicine_name, strength, form: f, ...rest }) => rest),
+    items: data.items.map(({ _key, strength, form: f, ...rest }) => rest),
   })).post(route('pharmacy.prescriptions.store'), {
     preserveScroll: true,
     onSuccess: () => emit('success'),

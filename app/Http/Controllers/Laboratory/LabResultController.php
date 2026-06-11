@@ -76,7 +76,15 @@ class LabResultController extends Controller
             'results.*.remarks' => ['nullable', 'string'],
         ]);
 
+        $orderItemIds = $labOrder->items()->pluck('id')->toArray();
+
         foreach ($validated['results'] as $result) {
+            if (!in_array($result['lab_order_item_id'], $orderItemIds)) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Invalid lab order item specified.');
+            }
+
             LabResult::updateOrCreate(
                 [
                     'lab_order_item_id' => $result['lab_order_item_id'],
@@ -88,8 +96,6 @@ class LabResultController extends Controller
                 ]
             );
         }
-
-        $labOrder->update(['status' => 'completed']);
 
         return redirect()
             ->route('laboratory.orders.show', $labOrder)

@@ -148,7 +148,7 @@
       </div>
     </div>
 
-    <CreatePrescriptionModal v-if="showCreateModal" :patients="patients" :doctors="doctors" :generics="generics"
+    <CreatePrescriptionModal v-if="showCreateModal" :patients="patients" :doctors="doctors" :generics="generics" :today-bs="today_bs"
       @close="showCreateModal = false" @success="refreshData" />
   </AuthenticatedLayout>
 </template>
@@ -175,6 +175,7 @@ const props = defineProps({
   patients:      Array,
   doctors:       Array,
   generics:      Array,
+  today_bs:      String,
 })
 
 const showCreateModal = ref(false)

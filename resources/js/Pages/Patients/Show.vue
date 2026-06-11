@@ -86,6 +86,7 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'n
                     <div class="flex justify-between items-start">
                         <div>
                             <div class="font-semibold text-gray-900">{{ formatDate(v.visited_at) }}</div>
+                            <div class="text-xs text-gray-400" v-if="v.created_at_bs">BS: {{ v.created_at_bs }}</div>
                             <div class="text-sm text-gray-600 mt-1">Doctor: Dr. {{ v.doctor?.name || 'N/A' }}</div>
                             <div class="text-sm text-gray-600">Complaint: {{ v.chief_complaint || '-' }}</div>
                         </div>
@@ -104,6 +105,7 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'n
                     <div class="flex justify-between items-start">
                         <div>
                             <div class="font-semibold text-gray-900">{{ formatDate(c.created_at) }}</div>
+                            <div class="text-xs text-gray-400" v-if="c.created_at_bs">BS: {{ c.created_at_bs }}</div>
                             <div class="text-sm text-gray-600 mt-1">Doctor: Dr. {{ c.doctor?.name || 'N/A' }}</div>
                             <div v-if="c.diagnosis" class="text-sm text-gray-600">Diagnosis: {{ c.diagnosis }}</div>
                             <div v-if="c.chief_complaint" class="text-sm text-gray-600">Complaint: {{ c.chief_complaint }}</div>
@@ -119,7 +121,8 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'n
             <!-- Prescriptions -->
             <div v-if="activeTab === 'prescriptions'" class="space-y-3">
                 <div v-for="p in prescriptions" :key="p.id" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <div class="font-semibold text-gray-900">{{ formatDate(p.created_at) }}</div>
+                    <div class="font-semibold text-gray-900">{{ p.prescribed_at ?? formatDate(p.created_at) }}</div>
+                    <div class="text-xs text-gray-400" v-if="p.created_at_bs">BS: {{ p.created_at_bs }}</div>
                     <div class="text-sm text-gray-600">Doctor: Dr. {{ p.consultation?.doctor?.name || 'N/A' }}</div>
                     <div v-if="p.advices" class="mt-2 text-sm text-gray-700">Advice: {{ p.advices }}</div>
                     <div v-if="p.items?.length" class="mt-3">
@@ -141,6 +144,7 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'n
                     <div class="flex justify-between items-start">
                         <div>
                             <div class="font-semibold text-gray-900">{{ formatDate(lo.created_at) }}</div>
+                            <div class="text-xs text-gray-400" v-if="lo.created_at_bs">BS: {{ lo.created_at_bs }}</div>
                             <div class="text-sm text-gray-600">Doctor: Dr. {{ lo.doctor?.name || 'N/A' }}</div>
                             <div v-if="lo.items?.length" class="mt-2">
                                 <div v-for="item in lo.items" :key="item.id" class="text-sm text-gray-700">
@@ -162,8 +166,9 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'n
                 <div v-for="fu in followUps" :key="fu.id" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                     <div class="flex justify-between items-start">
                         <div>
-                            <div class="font-semibold text-gray-900">{{ fu.follow_up_date }}</div>
-                            <div class="text-sm text-gray-600">Doctor: Dr. {{ fu.doctor?.name || 'N/A' }}</div>
+                            <div class="font-semibold text-gray-900">{{ fu.follow_up_date_bs || fu.follow_up_date }}</div>
+                            <div class="text-xs text-gray-400" v-if="fu.created_at_bs">BS: {{ fu.created_at_bs }}</div>
+                            <div class="text-sm text-gray-600 mt-1">Doctor: Dr. {{ fu.doctor?.name || 'N/A' }}</div>
                             <div v-if="fu.notes" class="text-sm text-gray-600 mt-1">{{ fu.notes }}</div>
                         </div>
                         <span class="px-3 py-1 rounded-full text-xs font-semibold" :class="{

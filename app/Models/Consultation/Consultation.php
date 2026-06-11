@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Consultation extends Model
 {
+    protected $appends = ['created_at_bs'];
+
     protected $fillable = [
         'visit_id',
         'appointment_id',
@@ -63,5 +65,15 @@ class Consultation extends Model
 public function labOrders()
 {
     return $this->hasMany(LabOrder::class);
+}
+
+public function getCreatedAtBsAttribute()
+{
+    if (!$this->created_at) return null;
+    try {
+        return \Anuzpandey\LaravelNepaliDate\LaravelNepaliDate::from($this->created_at->format('Y-m-d'))->toNepaliDate();
+    } catch (\Throwable) {
+        return $this->created_at->format('Y-m-d');
+    }
 }
 }

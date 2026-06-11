@@ -8,12 +8,12 @@ const props = defineProps({
 })
 
 const form = useForm({
-    lab_test_id: props.parameter?.lab_test_id || '',
-    name: props.parameter?.name || '',
-    unit: props.parameter?.unit || '',
-    reference_range: props.parameter?.reference_range || '',
-    display_order: props.parameter?.display_order || 1,
-    is_active: props.parameter?.is_active ?? true,
+    lab_test_id: props.parameter.lab_test_id ?? '',
+    name: props.parameter.name ?? '',
+    unit: props.parameter.unit ?? '',
+    reference_range: props.parameter.reference_range ?? '',
+    display_order: props.parameter.display_order ?? 1,
+    is_active: Boolean(props.parameter.is_active),
 })
 
 const submit = () => {
@@ -24,81 +24,75 @@ const submit = () => {
 <template>
     <Head title="Edit Lab Test Parameter" />
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl p-6">
-            <!-- Header -->
-            <div class="mb-6 flex items-center justify-between">
+        <div class="p-6 max-w-3xl mx-auto space-y-6">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-800">Edit Parameter</h1>
-                    <p class="mt-1 text-sm text-slate-500">
-                        Update laboratory test parameter and reference range.
-                    </p>
+                    <h1 class="text-2xl font-bold text-slate-900">Edit Lab Test Parameter</h1>
+                    <p class="mt-1 text-sm text-slate-500">Update the laboratory test parameter.</p>
                 </div>
-                <Link
-                    :href="route('laboratory.test-parameters.index')"
-                    class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                >
+                <Link :href="route('laboratory.test-parameters.index')"
+                      class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
                     <i class="fas fa-arrow-left"></i>
                     Back
                 </Link>
             </div>
 
-            <!-- Form -->
-            <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                <form @submit.prevent="submit" class="space-y-5">
-                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-4">
+                    <h2 class="font-semibold text-slate-800">Parameter Information</h2>
+                </div>
+
+                <form @submit.prevent="submit" class="p-6 space-y-5">
+                    <div class="grid gap-5 md:grid-cols-2">
                         <div>
                             <label class="mb-1 block text-sm font-medium text-slate-700">Lab Test <span class="text-red-500">*</span></label>
                             <select v-model="form.lab_test_id"
-                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    class="form-select w-full"
+                                    :class="{ 'border-red-400': form.errors.lab_test_id }">
                                 <option value="">Select Lab Test</option>
                                 <option v-for="test in labTests" :key="test.id" :value="test.id">{{ test.name }}</option>
                             </select>
                             <p v-if="form.errors.lab_test_id" class="mt-1 text-xs text-red-500">{{ form.errors.lab_test_id }}</p>
                         </div>
-
                         <div>
                             <label class="mb-1 block text-sm font-medium text-slate-700">Parameter Name <span class="text-red-500">*</span></label>
-                            <input v-model="form.name" type="text"
-                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                placeholder="e.g. Hemoglobin" />
+                            <input v-model="form.name" type="text" placeholder="Hemoglobin"
+                                   class="form-input w-full"
+                                   :class="{ 'border-red-400': form.errors.name }" />
                             <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">{{ form.errors.name }}</p>
                         </div>
-
                         <div>
                             <label class="mb-1 block text-sm font-medium text-slate-700">Unit</label>
-                            <input v-model="form.unit" type="text"
-                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                placeholder="e.g. g/dL" />
+                            <input v-model="form.unit" type="text" placeholder="g/dL"
+                                   class="form-input w-full" />
                         </div>
-
                         <div>
                             <label class="mb-1 block text-sm font-medium text-slate-700">Reference Range</label>
-                            <input v-model="form.reference_range" type="text"
-                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                placeholder="e.g. 13.5 - 17.5" />
+                            <input v-model="form.reference_range" type="text" placeholder="13 - 17"
+                                   class="form-input w-full" />
                         </div>
-
                         <div>
                             <label class="mb-1 block text-sm font-medium text-slate-700">Display Order</label>
                             <input v-model="form.display_order" type="number" min="1"
-                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                                   class="form-input w-full" />
                         </div>
-
                         <div class="flex items-center gap-3 pt-6">
-                            <input v-model="form.is_active" type="checkbox" id="is_active" class="h-4 w-4 rounded border-slate-300 text-indigo-600" />
+                            <input v-model="form.is_active" type="checkbox" id="is_active"
+                                   class="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
                             <label for="is_active" class="text-sm font-medium text-slate-700">Active</label>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 border-t border-slate-200 pt-5">
-                        <button type="submit" :disabled="form.processing"
-                            class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">
-                            {{ form.processing ? 'Saving...' : 'Update Parameter' }}
-                        </button>
+                    <div class="flex items-center justify-end gap-3 border-t border-slate-200 pt-5">
                         <Link :href="route('laboratory.test-parameters.index')"
-                            class="rounded-xl border border-slate-300 px-6 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                              class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white rounded-lg border border-slate-200 hover:bg-slate-50 transition">
                             Cancel
                         </Link>
+                        <button type="submit" :disabled="form.processing"
+                                class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-lg shadow-sm hover:bg-teal-700 disabled:opacity-60 active:scale-95 transition-all">
+                            <i v-if="form.processing" class="fas fa-spinner fa-spin"></i>
+                            {{ form.processing ? 'Updating...' : 'Update Parameter' }}
+                        </button>
                     </div>
                 </form>
             </div>

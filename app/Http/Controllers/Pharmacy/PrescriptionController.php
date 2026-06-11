@@ -76,6 +76,7 @@ class PrescriptionController extends Controller
             'patients'      => Patient::select('id', 'name', 'phone', 'uhid')->orderBy('name')->get(),
             'doctors'       => Doctor::select('id', 'name', 'specialization')->orderBy('name')->get(),
             'generics'      => Generic::active()->orderBy('name')->get(['id', 'name']),
+            'today_bs'      => \Anuzpandey\LaravelNepaliDate\LaravelNepaliDate::from(now()->format('Y-m-d'))->toNepaliDate(),
         ]);
     }
 
@@ -98,6 +99,7 @@ class PrescriptionController extends Controller
                 'prescribed_at'       => $request->prescription_date ?? now(),
                 'status'              => 'pending',
                 'notes'               => $request->notes,
+                'created_by'          => auth()->id(),
             ]);
 
             foreach ($request->items as $item) {
