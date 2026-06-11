@@ -70,7 +70,7 @@ class Sales extends Model
 
     public function salesReturns(): HasMany
     {
-        return $this->hasMany(SalesReturn::class);
+        return $this->hasMany(SalesReturn::class, 'sale_id');
     }
 
     // ── Scopes ─────────────────────────────────────────────────────

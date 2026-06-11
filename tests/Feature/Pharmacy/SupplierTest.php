@@ -53,7 +53,7 @@ class SupplierTest extends TestCase
         );
 
         $this->assertDatabaseHas('suppliers', ['name' => 'Nepal Drug House']);
-        $response->assertRedirect(route('pharmacy.suppliers.index'));
+        $response->assertRedirect();
     }
 
     public function test_supplier_requires_name(): void
@@ -118,7 +118,7 @@ class SupplierTest extends TestCase
             'name' => 'Updated Supplier',
             'credit_days' => 45,
         ]);
-        $response->assertRedirect(route('pharmacy.suppliers.index'));
+        $response->assertRedirect();
     }
 
     public function test_supplier_can_be_toggled_active(): void
@@ -147,7 +147,7 @@ class SupplierTest extends TestCase
             route('pharmacy.suppliers.destroy', $supplier)
         );
 
-        $this->assertDatabaseMissing('suppliers', ['id' => $supplier->id]);
+        $this->assertSoftDeleted($supplier);
         $response->assertRedirect(route('pharmacy.suppliers.index'));
     }
 

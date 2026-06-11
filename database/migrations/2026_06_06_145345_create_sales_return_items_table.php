@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sales_return_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sales_return_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('sale_item_id')->constrained()->restrictOnDelete();
+            $table->foreignId('sale_item_id')->constrained('sales_items')->restrictOnDelete();
             $table->foreignId('medicine_id')->constrained()->restrictOnDelete();
             $table->foreignId('stock_batch_id')->constrained()->restrictOnDelete();
 

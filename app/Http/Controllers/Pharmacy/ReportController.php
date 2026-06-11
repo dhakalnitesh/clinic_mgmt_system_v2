@@ -88,7 +88,7 @@ class ReportController extends Controller
     {
         $medicines = Medicine::query()
             ->with(['category', 'generic', 'unit'])
-            ->whereDoesntHave('salesItems', fn ($q) =>
+            ->whereDoesntHave('saleItems', fn ($q) =>
                 $q->whereHas('sale', fn ($s) => $s->where('sale_date', '>=', now()->subDays($request->days ?? 90)))
             )
             ->orderBy('name')

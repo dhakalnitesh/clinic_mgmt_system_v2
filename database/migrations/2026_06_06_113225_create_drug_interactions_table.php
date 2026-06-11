@@ -20,6 +20,7 @@ return new class extends Migration
                 'minor',           // minimal clinical effect
                 'moderate',        // monitor closely
                 'major',           // potentially life-threatening
+                'severe',          // severe interaction
                 'contraindicated', // absolutely avoid
             ]);
 

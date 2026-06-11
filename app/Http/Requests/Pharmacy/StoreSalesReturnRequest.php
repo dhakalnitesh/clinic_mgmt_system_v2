@@ -18,7 +18,7 @@ class StoreSalesReturnRequest extends FormRequest
             'notes'                               => ['nullable', 'string'],
 
             'items'                               => ['required', 'array', 'min:1'],
-            'items.*.sale_item_id'                => ['required', 'exists:sale_items,id'],
+            'items.*.sale_item_id'                => ['required', 'exists:sales_items,id'],
             'items.*.quantity_returned'           => ['required', 'integer', 'min:1'],
             'items.*.stock_action'                => ['required', 'in:return_to_stock,write_off'],
             'items.*.condition_note'              => ['nullable', 'string', 'max:200'],

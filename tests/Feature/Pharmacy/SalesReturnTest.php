@@ -86,14 +86,15 @@ class SalesReturnTest extends TestCase
         $response = $this->actingAs($this->user)->post(
             route('pharmacy.sales-returns.store'),
             [
-                'sale_id' => $this->sale->id,
+                'sale_id'     => $this->sale->id,
                 'return_date' => now()->toDateString(),
+                'reason'      => 'wrong_medicine',
                 'refund_mode' => 'cash',
                 'items' => [
                     [
-                        'sale_item_id' => $this->saleItem->id,
-                        'quantity' => 1,
-                        'reason' => 'Damaged product',
+                        'sale_item_id'    => $this->saleItem->id,
+                        'quantity_returned' => 1,
+                        'stock_action'     => 'return_to_stock',
                     ],
                 ],
             ]

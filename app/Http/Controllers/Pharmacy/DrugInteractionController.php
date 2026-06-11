@@ -43,7 +43,7 @@ class DrugInteractionController extends Controller
         $validated = $request->validate([
             'generic_id_1' => ['required', 'exists:generics,id', 'different:generic_id_2'],
             'generic_id_2' => ['required', 'exists:generics,id', 'different:generic_id_1'],
-            'severity'     => ['required', 'in:minor,moderate,major,contraindicated'],
+            'severity'     => ['required', 'in:minor,moderate,major,severe,contraindicated'],
             'description'  => ['required', 'string', 'max:500'],
             'management'   => ['nullable', 'string', 'max:500'],
             'reference'    => ['nullable', 'string', 'max:200'],
@@ -70,7 +70,7 @@ class DrugInteractionController extends Controller
         $validated = $request->validate([
             'generic_id_1' => ['required', 'exists:generics,id', 'different:generic_id_2'],
             'generic_id_2' => ['required', 'exists:generics,id', 'different:generic_id_1'],
-            'severity'     => ['required', 'in:minor,moderate,major,contraindicated'],
+            'severity'     => ['required', 'in:minor,moderate,major,severe,contraindicated'],
             'description'  => ['required', 'string', 'max:500'],
             'management'   => ['nullable', 'string', 'max:500'],
             'reference'    => ['nullable', 'string', 'max:200'],

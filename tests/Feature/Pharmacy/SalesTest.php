@@ -76,15 +76,19 @@ class SalesTest extends TestCase
         $response = $this->actingAs($this->user)->post(
             route('pharmacy.sales.store'),
             [
-                'sale_date' => now()->toDateString(),
+                'sale_date'    => now()->toDateString(),
+                'sale_type'    => 'counter',
+                'discount_type' => 'amount',
+                'discount_value' => 0,
                 'payment_mode' => 'cash',
-                'paid_amount' => 50.00,
+                'paid_amount'  => 50.00,
                 'items' => [
                     [
-                        'medicine_id' => $this->medicine->id,
-                        'batch_id' => $this->batch->id,
-                        'quantity' => 2,
-                        'unit_price' => 25.00,
+                        'medicine_id'      => $this->medicine->id,
+                        'quantity'         => 2,
+                        'unit_price'       => 25.00,
+                        'discount_percent' => 0,
+                        'tax_percent'      => 0,
                     ],
                 ],
             ]

@@ -205,7 +205,7 @@ class MedicineTest extends TestCase
             route('pharmacy.medicines.destroy', $medicine)
         );
 
-        $this->assertDatabaseMissing('medicines', ['id' => $medicine->id]);
+        $this->assertSoftDeleted($medicine);
         $response->assertRedirect(route('pharmacy.medicines.index'));
     }
 
