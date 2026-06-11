@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Http\Requests\Pharmacy;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StorePrescriptionRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+
+    public function rules(): array
+    {
+        return [
+            'patient_id'                     => ['nullable', 'integer'],
+            'doctor_id'                      => ['nullable', 'integer'],
+            'encounter_id'                   => ['nullable', 'integer'],
+            'prescription_date'              => ['required', 'date'],
+            'notes'                          => ['nullable', 'string'],
+
+            'items'                          => ['required', 'array', 'min:1'],
+            'items.*.medicine_id'            => ['nullable', 'exists:medicines,id'],
+            'items.*.generic_id'             => ['nullable', 'exists:generics,id'],
+            'items.*.dosage_instruction'     => ['nullable', 'string', 'max:200'],
+            'items.*.frequency'              => ['nullable', 'string'],
+            'items.*.duration_days'          => ['nullable', 'integer', 'min:1'],
+            'items.*.route'                  => ['nullable', 'string', 'max:50'],
+            'items.*.quantity_prescribed'    => ['required', 'integer', 'min:1'],
+            'items.*.is_substitutable'       => ['boolean'],
+            'items.*.instructions'           => ['nullable', 'string'],
+        ];
+    }
+}
