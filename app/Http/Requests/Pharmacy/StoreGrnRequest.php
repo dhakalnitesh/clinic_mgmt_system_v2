@@ -23,7 +23,7 @@ class StoreGrnRequest extends FormRequest
             'items.*.purchase_order_item_id'    => ['nullable', 'exists:purchase_order_items,id'],
             'items.*.batch_number'              => ['required', 'string', 'max:80'],
             'items.*.manufacturing_date'        => ['nullable', 'date'],
-            'items.*.expiry_date'               => ['required', 'date', 'after:today'],
+            'items.*.expiry_date'               => ['required', 'date'],
             'items.*.quantity_received'         => ['required', 'integer', 'min:1'],
             'items.*.free_quantity'             => ['required', 'integer', 'min:0'],
             'items.*.unit_price'                => ['required', 'numeric', 'min:0'],

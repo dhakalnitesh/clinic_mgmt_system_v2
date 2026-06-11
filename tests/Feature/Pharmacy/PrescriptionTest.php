@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Pharmacy;
 
+use App\Models\Doctor\Doctor;
+use App\Models\Patient\Patient;
 use App\Models\Pharmacy\Generic;
 use App\Models\Pharmacy\Medicine;
 use App\Models\Pharmacy\MedicineCategory;
@@ -16,6 +18,8 @@ class PrescriptionTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+    private Patient $patient;
+    private Doctor $doctor;
     private Medicine $medicine;
     private Generic $generic;
 
@@ -23,6 +27,8 @@ class PrescriptionTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->create();
+        $this->patient = Patient::create(['name' => 'Test Patient', 'phone' => '9800000000', 'gender' => 'male', 'age' => 30]);
+        $this->doctor = Doctor::create(['name' => 'Test Doctor', 'nmc_number' => 'NMC-12345', 'specialization' => 'General', 'phone' => '9800000001']);
 
         $category = MedicineCategory::create(['name' => 'Test Cat', 'is_active' => true]);
         $this->generic = Generic::create(['name' => 'Test Generic', 'is_active' => true]);
@@ -64,6 +70,8 @@ class PrescriptionTest extends TestCase
         $response = $this->actingAs($this->user)->post(
             route('pharmacy.prescriptions.store'),
             [
+                'patient_id'        => $this->patient->id,
+                'doctor_id'         => $this->doctor->id,
                 'prescription_date' => now()->toDateString(),
                 'items' => [
                     [
@@ -117,7 +125,8 @@ class PrescriptionTest extends TestCase
 
         $response->assertInertia(fn ($page) =>
             $page->has('summary', fn ($s) =>
-                $s->has('pending')
+                $s->has('total')
+                  ->has('pending')
                   ->has('partial')
                   ->has('dispensed')
             )
@@ -129,11 +138,31 @@ class PrescriptionTest extends TestCase
         $response = $this->actingAs($this->user)->post(
             route('pharmacy.prescriptions.store'),
             [
+                'patient_id'        => $this->patient->id,
+                'doctor_id'         => $this->doctor->id,
                 'prescription_date' => now()->toDateString(),
                 'items' => [],
             ]
         );
 
         $response->assertSessionHasErrors('items');
+    }
+
+    public function test_prescription_requires_patient_and_doctor(): void
+    {
+        $response = $this->actingAs($this->user)->post(
+            route('pharmacy.prescriptions.store'),
+            [
+                'prescription_date' => now()->toDateString(),
+                'items' => [
+                    [
+                        'medicine_id' => $this->medicine->id,
+                        'quantity_prescribed' => 10,
+                    ],
+                ],
+            ]
+        );
+
+        $response->assertSessionHasErrors(['patient_id', 'doctor_id']);
     }
 }

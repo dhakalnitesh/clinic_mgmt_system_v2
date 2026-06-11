@@ -1,99 +1,89 @@
 <template>
-    <button v-if="isMobile" @click="$emit('close')"
-        class="lg:hidden flex size-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 m-4 hover:bg-gray-200 dark:hover:bg-gray-700">
-        <i class="fas fa-times"></i>
-    </button>
+    <div class="flex flex-col h-full">
 
-    <nav class="flex-1 overflow-y-auto py-3 px-2 scrollbar-thin">
-        <ul class="space-y-1">
+        <!-- TOP: Dashboard (sticky) -->
+        <div class="flex-shrink-0 px-2 pt-0.5   ">
+            <button v-if="isMobile" @click="$emit('close')"
+                class="lg:hidden flex size-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 mb-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
 
-            <!-- Dashboard -->
-            <li>
-                <a href="/dashboard" :class="linkClass('/dashboard')" @click="onLinkClick" :title="collapsed ? 'Dashboard' : undefined">
-                    <span class="icon-wrapper" :class="{ 'icon-active': pageUrl.startsWith('/dashboard') }">
-                        <i class="fas fa-th-large"></i>
-                    </span>
-                    <span v-if="!collapsed">Dashboard</span>
-                </a>
-            </li>
+            <a href="/dashboard" :class="linkClass('/dashboard')" @click="onLinkClick" :title="collapsed ? 'Dashboard' : undefined">
+                <span class="icon-wrapper" :class="{ 'icon-active': pageUrl.startsWith('/dashboard') }">
+                    <i class="fas fa-th-large"></i>
+                </span>
+                <span v-if="!collapsed">Dashboard</span>
+            </a>
 
-            <li v-if="!collapsed" class="my-1 border-t border-gray-100 dark:border-gray-800"></li>
-
-            <!-- Clinical Section -->
-            <li v-if="!collapsed" class="px-3 py-1">
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Clinical</span>
-            </li>
-
-            <!-- Single-page modules (direct links) -->
-            <li v-for="item in directLinks" :key="item.path">
-                <a :href="item.path" :class="linkClass(item.path)" @click="onLinkClick" :title="collapsed ? item.label : undefined">
-                    <span class="icon-wrapper" :class="{ 'icon-active': pageUrl.startsWith(item.path) }">
-                        <i :class="['fas', item.icon]"></i>
-                    </span>
-                    <span v-if="!collapsed">{{ item.label }}</span>
-                </a>
-            </li>
-
-            <li v-if="!collapsed" class="my-1 border-t border-gray-100 dark:border-gray-800"></li>
-
-            <!-- Operations Section -->
-            <li v-if="!collapsed" class="px-3 py-1">
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Operations</span>
-            </li>
-
-            <!-- Multi-page modules (expandable) -->
-            <li v-for="mod in expandableModules" :key="mod.module">
-                <button @click="toggleMenu(mod.module)" :class="groupBtnClass(mod.module)" :title="collapsed ? mod.module : undefined">
-                    <span class="icon-wrapper" :class="{ 'icon-active': isActiveModule(mod) }">
-                        <i :class="['fas', mod.icon]"></i>
-                    </span>
-                    <span v-if="!collapsed" class="flex-1 text-left text-sm font-medium">{{ mod.module }}</span>
-                    <i v-if="!collapsed"
-                        :class="openMenu === mod.module ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
-                        class="text-[10px] text-gray-400"></i>
-                </button>
-                <div v-if="openMenu === mod.module && !collapsed" class="ml-3 mt-0.5 space-y-0.5 border-l-2 border-teal-200 dark:border-teal-800 pl-3">
-                    <a v-for="sub in mod.items" :key="sub.index_url" :href="sub.index_url"
-                        :class="subLinkClass(sub.index_url)" @click="onLinkClick">
-                        <span class="flex items-center gap-2">
-                            <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
-                            {{ sub.index_name }}
-                        </span>
-                        <span v-if="sub.badge"
-                            class="ml-auto inline-flex items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/40 px-1.5 py-0.5 text-[10px] font-medium text-teal-700 dark:text-teal-300">
-                            {{ sub.badge }}
-                        </span>
-                    </a>
-                </div>
-            </li>
-
-            <li v-if="!collapsed" class="my-1 border-t border-gray-100 dark:border-gray-800"></li>
-
-            <!-- System Section -->
-            <li v-if="!collapsed" class="px-3 py-1">
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">System</span>
-            </li>
-
-            <li>
-                <a href="/reports" :class="linkClass('/reports')" @click="onLinkClick" :title="collapsed ? 'Reports' : undefined">
-                    <span class="icon-wrapper" :class="{ 'icon-active': pageUrl.startsWith('/reports') }">
-                        <i class="fas fa-chart-line"></i>
-                    </span>
-                    <span v-if="!collapsed">Reports</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Status Footer -->
-    <div v-if="!collapsed" class="border-t border-gray-200 dark:border-gray-700 p-3">
-        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-            <div class="relative">
-                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                <div class="w-2 h-2 rounded-full bg-emerald-500 absolute top-0 left-0 animate-ping"></div>
-            </div>
-            <span class="text-xs text-gray-500 dark:text-gray-400">All Systems Operational</span>
+            <div v-if="!collapsed" class="mt-1 mb-2 border-t border-gray-200 dark:border-gray-700"></div>
         </div>
+
+        <!-- MIDDLE: scrollable -->
+        <nav class="flex-1 overflow-y-auto px-2 scrollbar-thin">
+            <ul class="space-y-1">
+
+                <!-- Clinical Section -->
+                <li v-if="!collapsed" class="px-3 py-1">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Clinical</span>
+                </li>
+
+                <!-- Single-page modules (direct links) -->
+                <li v-for="item in directLinks" :key="item.path">
+                    <a :href="item.path" :class="linkClass(item.path)" @click="onLinkClick" :title="collapsed ? item.label : undefined">
+                        <span class="icon-wrapper" :class="{ 'icon-active': pageUrl.startsWith(item.path) }">
+                            <i :class="['fas', item.icon]"></i>
+                        </span>
+                        <span v-if="!collapsed">{{ item.label }}</span>
+                    </a>
+                </li>
+
+                <li v-if="!collapsed" class="my-1 border-t border-gray-100 dark:border-gray-800"></li>
+
+                <!-- Operations Section -->
+                <li v-if="!collapsed" class="px-3 py-1">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Operations</span>
+                </li>
+
+                <!-- Multi-page modules (expandable) -->
+                <li v-for="mod in expandableModules" :key="mod.module">
+                    <button @click="toggleMenu(mod.module)" :class="groupBtnClass(mod.module)" :title="collapsed ? mod.module : undefined">
+                        <span class="icon-wrapper" :class="{ 'icon-active': isActiveModule(mod) }">
+                            <i :class="['fas', mod.icon]"></i>
+                        </span>
+                        <span v-if="!collapsed" class="flex-1 text-left text-sm font-medium">{{ mod.module }}</span>
+                        <i v-if="!collapsed"
+                            :class="openMenu === mod.module ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
+                            class="text-[10px] text-gray-400"></i>
+                    </button>
+                    <div v-if="openMenu === mod.module && !collapsed" class="ml-3 mt-0.5 space-y-0.5 border-l-2 border-teal-200 dark:border-teal-800 pl-3">
+                        <a v-for="sub in mod.items" :key="sub.index_url" :href="sub.index_url"
+                            :class="subLinkClass(sub.index_url)" @click="onLinkClick">
+                            <span class="flex items-center gap-2">
+                                <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                                {{ sub.index_name }}
+                            </span>
+                            <span v-if="sub.badge"
+                                class="ml-auto inline-flex items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/40 px-1.5 py-0.5 text-[10px] font-medium text-teal-700 dark:text-teal-300">
+                                {{ sub.badge }}
+                            </span>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- BOTTOM: Reports (sticky) -->
+        <div class="flex-shrink-0 px-2 pb-1">
+            <div v-if="!collapsed" class="mt-1.5 mb-0.5 border-t border-gray-200 dark:border-gray-700"></div>
+
+            <a href="/reports" :class="linkClass('/reports')" @click="onLinkClick" :title="collapsed ? 'Reports' : undefined">
+                <span class="icon-wrapper" :class="{ 'icon-active': pageUrl.startsWith('/reports') }">
+                    <i class="fas fa-chart-line"></i>
+                </span>
+                <span v-if="!collapsed">Reports</span>
+            </a>
+        </div>
+
     </div>
 </template>
 
@@ -127,7 +117,7 @@ const expandableModules = [
         module: 'Pharmacy',
         icon: 'fa-capsules',
         items: [
-            { index_url: '/pharmacy/dashboard', index_name: 'Dashboard' },
+            { index_url: '/pharmacy', index_name: 'Dashboard' },
             { index_url: '/pharmacy/medicines', index_name: 'Medicines' },
             { index_url: '/pharmacy/inventory', index_name: 'Inventory' },
             { index_url: '/pharmacy/sales', index_name: 'Sales' },
@@ -143,6 +133,7 @@ const expandableModules = [
         items: [
             { index_url: '/laboratory/dashboard', index_name: 'Dashboard' },
             { index_url: '/laboratory/orders', index_name: 'Lab Orders' },
+            { index_url: '/laboratory/results', index_name: 'Lab Results' },
             { index_url: '/laboratory/test-parameters', index_name: 'Test Parameters' },
         ],
     },

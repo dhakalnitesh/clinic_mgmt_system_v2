@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.3",
         "anuzpandey/laravel-nepali-date": "*",
+        "barryvdh/laravel-dompdf": "^3.1",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",

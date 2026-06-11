@@ -7,11 +7,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Doctor\Doctor;
+use App\Models\Patient\Patient;
 use App\Models\User;
 
 class Prescription extends Model
 {
     use SoftDeletes;
+
+    protected $appends = ['created_at_bs'];
 
     protected $fillable = [
         'consultation_id',
@@ -24,7 +28,6 @@ class Prescription extends Model
         'dispensed_by',
         'dispensed_at',
         'advices',
-        'prescribed_at',
         'created_by',
         'updated_by',
         'notes',
@@ -40,6 +43,16 @@ class Prescription extends Model
     public function consultation(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Consultation\Consultation::class);
+    }
+
+    public function patient(): BelongsTo
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+    public function doctor(): BelongsTo
+    {
+        return $this->belongsTo(Doctor::class, 'doctor_id');
     }
 
     public function dispensedBy(): BelongsTo
@@ -101,5 +114,15 @@ class Prescription extends Model
         }
 
         $this->update(['status' => $status]);
+    }
+
+    public function getCreatedAtBsAttribute()
+    {
+        if (!$this->created_at) return null;
+        try {
+            return \Anuzpandey\LaravelNepaliDate\LaravelNepaliDate::from($this->created_at->format('Y-m-d'))->toNepaliDate();
+        } catch (\Throwable) {
+            return $this->created_at->format('Y-m-d');
+        }
     }
 }

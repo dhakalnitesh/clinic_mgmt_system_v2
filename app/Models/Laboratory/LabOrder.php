@@ -3,14 +3,16 @@
 namespace App\Models\Laboratory;
 
 use App\Models\Consultation\Consultation;
+use App\Models\Doctor\Doctor;
 use App\Models\Patient\Patient;
-use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class LabOrder extends Model
 {
     use HasFactory;
+
+    protected $appends = ['created_at_bs'];
 
     protected $fillable = [
         'consultation_id',
@@ -44,7 +46,7 @@ class LabOrder extends Model
      */
     public function doctor()
     {
-        return $this->belongsTo(User::class, 'doctor_id');
+        return $this->belongsTo(Doctor::class, 'doctor_id');
     }
 
     /**
@@ -53,5 +55,23 @@ class LabOrder extends Model
     public function items()
     {
         return $this->hasMany(LabOrderItem::class);
+    }
+
+    /**
+     * Results through order items.
+     */
+    public function results()
+    {
+        return $this->hasManyThrough(LabResult::class, LabOrderItem::class);
+    }
+
+    public function getCreatedAtBsAttribute()
+    {
+        if (!$this->created_at) return null;
+        try {
+            return \Anuzpandey\LaravelNepaliDate\LaravelNepaliDate::from($this->created_at->format('Y-m-d'))->toNepaliDate();
+        } catch (\Throwable) {
+            return $this->created_at->format('Y-m-d');
+        }
     }
 }

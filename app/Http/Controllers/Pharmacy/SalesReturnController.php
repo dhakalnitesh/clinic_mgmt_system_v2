@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Pharmacy;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pharmacy\StoreSalesReturnRequest;
-use App\Models\Pharmacy\Sale;
 use App\Models\Pharmacy\Sales;
 use App\Models\Pharmacy\SalesReturn;
 use Illuminate\Support\Facades\DB;

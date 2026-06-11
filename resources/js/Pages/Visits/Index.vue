@@ -73,6 +73,7 @@ const refreshData = () => { router.reload({ only: ['visits'] }) }
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Doctor</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Symptoms</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Date</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Created (BS)</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Type</th>
                 <th class="px-6 py-4 text-right text-xs font-semibold uppercase text-gray-600">Actions</th>
               </tr>
@@ -90,6 +91,7 @@ const refreshData = () => { router.reload({ only: ['visits'] }) }
                 </td>
                 <td class="px-6 py-4 text-sm">{{ visit.chief_complaint || '-' }}</td>
                 <td class="px-6 py-4 text-sm">{{ formatDate(visit.visited_at) }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600 font-mono">{{ visit.created_at_bs || '-' }}</td>
                 <td class="px-6 py-4">
                   <span :class="typeClass(visit)" class="inline-flex px-3 py-1 rounded-full text-xs font-semibold">
                     {{ formatType(visit) }}
@@ -108,7 +110,7 @@ const refreshData = () => { router.reload({ only: ['visits'] }) }
                 </td>
               </tr>
               <tr v-if="!visits?.data?.length">
-                <td colspan="7" class="px-6 py-12 text-center text-gray-500">No visits found.</td>
+                <td colspan="8" class="px-6 py-12 text-center text-gray-500">No visits found.</td>
               </tr>
             </tbody>
           </table>

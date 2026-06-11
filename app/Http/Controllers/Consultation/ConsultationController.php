@@ -158,11 +158,11 @@ class ConsultationController extends Controller
                         'prescription_id' => $prescription->id,
                         'medicine_id' => $medicine['medicine_id'] ?? null,
                         'medicine_name' => $medicine['medicine_name'] ?? null,
-                        'dosage' => $medicine['dosage'] ?? null,
+                        'dosage_instruction' => $medicine['dosage'] ?? $medicine['dosage_instruction'] ?? null,
                         'frequency' => $medicine['frequency'] ?? null,
-                        'duration' => $medicine['duration'] ?? null,
-                        'instructions' => $medicine['instruction'] ?? null,
-                        'quantity' => $medicine['quantity'] ?? null,
+                        'duration_days' => $medicine['duration_days'] ?? $medicine['duration'] ?? null,
+                        'instructions' => $medicine['instruction'] ?? $medicine['instructions'] ?? null,
+                        'quantity_prescribed' => $medicine['quantity_prescribed'] ?? $medicine['quantity'] ?? null,
                     ]);
                 }
             }

@@ -125,6 +125,17 @@
           </div>
         </div>
 
+        <!-- Created BS -->
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-700">
+            Created (BS)
+          </label>
+
+          <div class="mt-2 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 font-mono">
+            {{ visit?.created_at_bs || '-' }}
+          </div>
+        </div>
+
       </div>
 
       <!-- FOOTER -->

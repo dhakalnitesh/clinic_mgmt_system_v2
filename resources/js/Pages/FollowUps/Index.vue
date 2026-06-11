@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import FilterBar from '@/Components/FilterBar.vue'
 import Pagination from '@/Components/Pagination.vue'
@@ -73,6 +73,7 @@ const markCancelled = () => {
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Patient</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Doctor</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Follow-up Date</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Created (BS)</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Notes</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Status</th>
                                 <th class="px-6 py-4 text-right text-xs font-semibold uppercase text-gray-600">Actions</th>
@@ -86,7 +87,8 @@ const markCancelled = () => {
                                     <div class="text-xs text-gray-500">{{ fu.patient?.phone || '' }}</div>
                                 </td>
                                 <td class="px-6 py-4 text-sm">Dr. {{ fu.doctor?.name || 'N/A' }}</td>
-                                <td class="px-6 py-4 text-sm">{{ fu.follow_up_date }}</td>
+                                <td class="px-6 py-4 text-sm font-mono">{{ fu.follow_up_date_bs || fu.follow_up_date }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600 font-mono">{{ fu.created_at_bs || '-' }}</td>
                                 <td class="px-6 py-4 text-sm max-w-xs truncate">{{ fu.notes || '-' }}</td>
                                 <td class="px-6 py-4">
                                     <span class="px-3 py-1 rounded-full text-xs font-semibold" :class="statusClass(fu.status)">
@@ -95,6 +97,10 @@ const markCancelled = () => {
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2">
+                                        <Link :href="route('patients.show', fu.patient_id)"
+                                              class="text-indigo-600 hover:text-indigo-800" title="Patient History">
+                                            <i class="fas fa-history"></i>
+                                        </Link>
                                         <button v-if="fu.status === 'pending'"
                                             @click="confirmComplete = fu"
                                             class="text-emerald-600 hover:text-emerald-800" title="Mark Completed">
@@ -109,7 +115,7 @@ const markCancelled = () => {
                                 </td>
                             </tr>
                             <tr v-if="!followUps?.data?.length">
-                                <td colspan="7" class="px-6 py-12 text-center text-gray-500">No follow-ups found.</td>
+                                <td colspan="8" class="px-6 py-12 text-center text-gray-500">No follow-ups found.</td>
                             </tr>
                         </tbody>
                     </table>

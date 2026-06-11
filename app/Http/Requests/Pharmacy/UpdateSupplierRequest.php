@@ -10,8 +10,10 @@ class UpdateSupplierRequest extends FormRequest
 
     public function rules(): array
     {
+        $supplier = $this->route('supplier');
+
         return [
-            'name'                 => ['required', 'string', 'max:200'],
+            'name'                 => ['required', 'string', 'max:200', 'unique:suppliers,name,' . $supplier->id],
             'contact_person'       => ['nullable', 'string', 'max:100'],
             'phone'                => ['nullable', 'string', 'max:20'],
             'alternate_phone'      => ['nullable', 'string', 'max:20'],

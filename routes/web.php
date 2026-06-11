@@ -154,6 +154,22 @@ Route::middleware(['auth'])->prefix('laboratory')->name('laboratory.')->group(fu
     Route::post('/orders/{labOrder}/results', [LabResultController::class, 'store'])
         ->name('orders.results.store');
 
+    // Results index (standalone)
+    Route::get('/results', [LabResultController::class, 'index'])
+        ->name('results.index');
+
+    // Printable result report
+    Route::get('/orders/{labOrder}/results/print', [LabResultController::class, 'print'])
+        ->name('orders.results.print');
+
+    // CSV export
+    Route::get('/orders/{labOrder}/results/export/csv', [LabResultController::class, 'exportCsv'])
+        ->name('orders.results.export.csv');
+
+    // PDF export
+    Route::get('/orders/{labOrder}/results/export/pdf', [LabResultController::class, 'exportPdf'])
+        ->name('orders.results.export.pdf');
+
     // Test Parameters
     Route::resource('test-parameters', LabTestParameterController::class)
         ->except(['show']);

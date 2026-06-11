@@ -54,7 +54,10 @@ const submit = () => {
         </h1>
 
         <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ labOrder.order_number }}
+            {{ labOrder.order_number }} &middot; {{ labOrder.patient?.name }}
+        </p>
+        <p class="text-xs text-gray-400 dark:text-gray-500">
+            Doctor: {{ labOrder.doctor?.name }} &middot; BS: {{ labOrder.created_at_bs || '—' }}
         </p>
 
     </div>

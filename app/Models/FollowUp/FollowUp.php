@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class FollowUp extends Model
 {
+    protected $appends = ['created_at_bs', 'follow_up_date_bs'];
+
     protected $fillable = [
         'patient_id',
         'doctor_id',
@@ -52,5 +54,25 @@ class FollowUp extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function getCreatedAtBsAttribute()
+    {
+        if (!$this->created_at) return null;
+        try {
+            return \Anuzpandey\LaravelNepaliDate\LaravelNepaliDate::from($this->created_at->format('Y-m-d'))->toNepaliDate();
+        } catch (\Throwable) {
+            return $this->created_at->format('Y-m-d');
+        }
+    }
+
+    public function getFollowUpDateBsAttribute()
+    {
+        if (!$this->follow_up_date) return null;
+        try {
+            return \Anuzpandey\LaravelNepaliDate\LaravelNepaliDate::from($this->follow_up_date->format('Y-m-d'))->toNepaliDate();
+        } catch (\Throwable) {
+            return $this->follow_up_date->format('Y-m-d');
+        }
     }
 }

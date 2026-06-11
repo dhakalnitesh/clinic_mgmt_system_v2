@@ -113,7 +113,7 @@ class ConsultationTest extends TestCase
         $this->assertDatabaseHas('prescriptions', ['consultation_id' => $consultation->id]);
         $this->assertDatabaseHas('prescription_items', [
             'medicine_name' => 'Paracetamol',
-            'dosage' => '500mg',
+            'dosage_instruction' => '500mg',
         ]);
     }
 

@@ -138,6 +138,8 @@ const statusClass = (status) => {
                         ).toLocaleDateString()
                     }}
 
+                    <span class="text-gray-400">(BS: {{ labOrder.created_at_bs || '—' }})</span>
+
                 </div>
 
             </div>

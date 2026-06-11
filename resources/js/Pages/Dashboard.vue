@@ -139,63 +139,18 @@
             </div>
 
             <!-- CHART -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm relative">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm">
                 <h3 class="font-bold text-lg mb-4 text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                    <i class="fas fa-chart-area text-teal-600"></i>
-                    Weekly Clinic Activity
+                    <i class="fas fa-chart-bar text-teal-600"></i>
+                    Weekly Clinic Activity (Nepali Dates)
                 </h3>
 
-                <div class="relative" @mouseleave="hoveredPoint = null">
-                    <svg viewBox="0 0 700 200" class="w-full h-64" @mousemove="onChartHover">
-                        <defs>
-                            <linearGradient id="apptGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#0d9488" stop-opacity="0.2"/>
-                                <stop offset="100%" stop-color="#0d9488" stop-opacity="0"/>
-                            </linearGradient>
-                            <linearGradient id="visitGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#ef4444" stop-opacity="0.2"/>
-                                <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
-                            </linearGradient>
-                        </defs>
-
-                        <line x1="0" y1="50" x2="700" y2="50" stroke="#e2e8f0" class="dark:stroke-gray-700"/>
-                        <line x1="0" y1="100" x2="700" y2="100" stroke="#e2e8f0" class="dark:stroke-gray-700"/>
-                        <line x1="0" y1="150" x2="700" y2="150" stroke="#e2e8f0" class="dark:stroke-gray-700"/>
-
-                        <polygon :points="areaPoints('appointment')" fill="url(#apptGrad)"/>
-                        <polygon :points="areaPoints('visit')" fill="url(#visitGrad)"/>
-
-                        <polyline :points="appointmentPath" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline :points="visitPath" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-
-                        <g v-for="(p, i) in chartPoints" :key="i">
-                            <circle :cx="p.x" :cy="p.appointmentY" r="4" fill="#0d9488" stroke="white" stroke-width="2"
-                                class="cursor-pointer" @mouseenter="hoveredPoint = { ...weeklyData[i], type: 'appointment' }"/>
-                            <circle :cx="p.x" :cy="p.visitY" r="4" fill="#ef4444" stroke="white" stroke-width="2"
-                                class="cursor-pointer" @mouseenter="hoveredPoint = { ...weeklyData[i], type: 'visit' }"/>
-                        </g>
-                    </svg>
-
-                    <div v-if="hoveredPoint"
-                        class="absolute -top-2 left-1/2 -translate-x-1/2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg px-3 py-2 shadow-lg whitespace-nowrap z-10 pointer-events-none"
-                        :style="{ left: hoveredX + 'px' }">
-                        <div class="font-semibold mb-1">{{ hoveredPoint.date }}</div>
-                        <div class="flex gap-4">
-                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-teal-600"></span> Appt: {{ hoveredPoint.appointments }}</span>
-                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Visit: {{ hoveredPoint.visits }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex gap-6 text-sm font-medium mt-3">
-                    <span class="inline-flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-teal-600"></span>
-                        Appointments
-                    </span>
-                    <span class="inline-flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
-                        Visits
-                    </span>
+                <div class="relative" style="height: 300px">
+                    <Bar
+                        v-if="chartData"
+                        :data="chartData"
+                        :options="chartOptions"
+                    />
                 </div>
             </div>
 
@@ -221,6 +176,27 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { Bar } from 'vue-chartjs'
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler,
+} from 'chart.js'
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler,
+)
 
 import CreatePatientModal from '@/Pages/Patients/CreateModal.vue'
 import CreateDoctorModal from '@/Pages/Doctors/CreateModal.vue'
@@ -262,53 +238,82 @@ const statsWithIcons = computed(() => [
     { label: 'Visits', value: todayVisits.value, icon: 'fas fa-person-walking', route: '/visits', bgClass: 'bg-rose-50 dark:bg-rose-900/20', colorClass: 'text-rose-600 dark:text-rose-400' },
 ])
 
-const hoveredPoint = ref(null)
-const hoveredX = ref(0)
-
 const weeklyData = computed(() => page.props.weeklyData ?? [])
 
-const chartPoints = computed(() => {
-    const width = 700
-    const height = 200
-    if (!weeklyData.value.length) return []
-    const maxVal = Math.max(...weeklyData.value.flatMap(d => [d.appointments, d.visits]), 1)
-    const stepX = width / (weeklyData.value.length - 1)
-    return weeklyData.value.map((d, i) => ({
-        x: i * stepX,
-        appointmentY: height - (d.appointments / maxVal) * height,
-        visitY: height - (d.visits / maxVal) * height,
-    }))
+const chartData = computed(() => {
+    if (!weeklyData.value.length) return null
+
+    return {
+        labels: weeklyData.value.map(d => d.nepali_date),
+        datasets: [
+            {
+                label: 'Appointments',
+                data: weeklyData.value.map(d => d.appointments),
+                backgroundColor: 'rgba(13, 148, 136, 0.7)',
+                hoverBackgroundColor: 'rgba(13, 148, 136, 0.9)',
+                borderRadius: 6,
+                borderSkipped: false,
+            },
+            {
+                label: 'Visits',
+                data: weeklyData.value.map(d => d.visits),
+                backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                hoverBackgroundColor: 'rgba(239, 68, 68, 0.9)',
+                borderRadius: 6,
+                borderSkipped: false,
+            },
+        ],
+    }
 })
 
-const appointmentPath = computed(() =>
-    chartPoints.value.map(p => `${p.x},${p.appointmentY}`).join(' ')
-)
-
-const visitPath = computed(() =>
-    chartPoints.value.map(p => `${p.x},${p.visitY}`).join(' ')
-)
-
-const areaPoints = (type) => {
-    const pts = chartPoints.value
-    if (!pts.length) return ''
-    const baseY = 200
-    const yKey = type === 'appointment' ? 'appointmentY' : 'visitY'
-    let d = `0,${baseY} `
-    d += pts.map(p => `${p.x},${p[yKey]}`).join(' ')
-    d += ` ${pts[pts.length - 1].x},${baseY}`
-    return d
-}
-
-const onChartHover = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const mouseX = e.clientX - rect.left
-    const svgWidth = rect.width
-    const scale = svgWidth / 700
-    const svgX = mouseX / scale
-    const stepX = 700 / (weeklyData.value.length - 1)
-    const idx = Math.round(svgX / stepX)
-    const clamped = Math.max(0, Math.min(idx, weeklyData.value.length - 1))
-    hoveredPoint.value = weeklyData.value[clamped]
-    hoveredX.value = clamped * stepX * scale
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: { size: 12 },
+            },
+        },
+        tooltip: {
+            backgroundColor: '#1e293b',
+            titleFont: { size: 13, weight: '600' },
+            bodyFont: { size: 12 },
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: true,
+            callbacks: {
+                title: (items) => items[0].label,
+            },
+        },
+    },
+    scales: {
+        x: {
+            grid: { display: false },
+            ticks: {
+                font: { size: 11 },
+                color: '#94a3b8',
+                maxRotation: 0,
+            },
+        },
+        y: {
+            beginAtZero: true,
+            ticks: {
+                stepSize: 1,
+                precision: 0,
+                font: { size: 11 },
+                color: '#94a3b8',
+            },
+            grid: {
+                color: 'rgba(148, 163, 184, 0.15)',
+                drawBorder: false,
+            },
+        },
+    },
 }
 </script>
