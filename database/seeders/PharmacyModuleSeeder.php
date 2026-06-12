@@ -33,14 +33,16 @@ class PharmacyModuleSeeder extends Seeder
 
         $supplierIds = [];
         foreach ($suppliers as $s) {
-            $sup = Supplier::create([
-                'name' => $s['name'],
-                'contact_person' => $s['contact_person'],
-                'phone' => $s['phone'],
-                'email' => $s['email'],
-                'address' => $s['address'],
-                'is_active' => true,
-            ]);
+            $sup = Supplier::firstOrCreate(
+                ['name' => $s['name']],
+                [
+                    'contact_person' => $s['contact_person'],
+                    'phone' => $s['phone'],
+                    'email' => $s['email'],
+                    'address' => $s['address'],
+                    'is_active' => true,
+                ]
+            );
             $supplierIds[] = $sup->id;
         }
 
@@ -48,7 +50,7 @@ class PharmacyModuleSeeder extends Seeder
         $catNames = ['Antibiotics', 'Cardiovascular', 'Pain Management', 'Gastrointestinal', 'Respiratory', 'CNS', 'Vitamins & Supplements', 'Dermatology', 'Hormones', 'Ophthalmology'];
         $categoryIds = [];
         foreach ($catNames as $cn) {
-            $cat = MedicineCategory::create(['name' => $cn, 'is_active' => true]);
+            $cat = MedicineCategory::firstOrCreate(['name' => $cn], ['is_active' => true]);
             $categoryIds[$cn] = $cat->id;
         }
 
@@ -56,7 +58,7 @@ class PharmacyModuleSeeder extends Seeder
         $genericNames = ['Amoxicillin', 'Cefixime', 'Azithromycin', 'Omeprazole', 'Paracetamol', 'Ibuprofen', 'Amlodipine', 'Metformin', 'Atorvastatin', 'Losartan', 'Salbutamol', 'Cetirizine', 'Vitamin D3', 'Iron Sulphate', 'Metronidazole'];
         $genericIds = [];
         foreach ($genericNames as $gn) {
-            $gen = Generic::create(['name' => $gn, 'is_active' => true]);
+            $gen = Generic::firstOrCreate(['name' => $gn], ['is_active' => true]);
             $genericIds[$gn] = $gen->id;
         }
 
@@ -64,7 +66,7 @@ class PharmacyModuleSeeder extends Seeder
         $unitNames = ['Tablet' => 'Tab', 'Capsule' => 'Cap', 'Injection' => 'Inj', 'Syrup' => 'Syr', 'Cream' => 'Crm', 'Drops' => 'Drp', 'Inhaler' => 'Inh'];
         $unitIds = [];
         foreach ($unitNames as $name => $abbr) {
-            $unit = MedicineUnit::create(['name' => $name, 'abbreviation' => $abbr]);
+            $unit = MedicineUnit::firstOrCreate(['name' => $name], ['abbreviation' => $abbr]);
             $unitIds[$name] = $unit->id;
         }
 
@@ -89,7 +91,9 @@ class PharmacyModuleSeeder extends Seeder
 
         $medicineIds = [];
         foreach ($medicinesData as $m) {
-            $med = Medicine::create([
+            $med = Medicine::firstOrCreate(
+                ['name' => $m['name']],
+                [
                 'medicine_category_id'     => $categoryIds[$m['cat']],
                 'generic_id'               => $genericIds[$m['generic']],
                 'medicine_unit_id'         => $unitIds[$m['unit']],
@@ -122,33 +126,32 @@ class PharmacyModuleSeeder extends Seeder
             $poDate = Carbon::now()->subDays(rand(10, 60));
 
             $po = PurchaseOrder::create([
-                'order_number'    => 'PO-' . now()->format('Ymd') . '-' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT),
-                'supplier_id'     => $supplierId,
-                'order_date'      => $poDate,
-                'expected_date'   => $poDate->copy()->addDays(rand(3, 7)),
-                'status'          => $status,
-                'subtotal'        => 0,
-                'tax'             => 0,
-                'total'           => 0,
-                'notes'           => 'Routine stock order',
-                'created_by'      => $adminId,
+                'po_number'              => 'PO-' . now()->format('Ymd') . '-' . str_pad($idx + 1, 3, '0', STR_PAD_LEFT),
+                'supplier_id'            => $supplierId,
+                'ordered_by'             => $adminId,
+                'order_date'             => $poDate,
+                'expected_delivery_date' => $poDate->copy()->addDays(rand(3, 7)),
+                'status'                 => $status,
+                'subtotal'               => 0,
+                'total_amount'           => 0,
+                'notes'                  => 'Routine stock order',
             ]);
 
             $med = Medicine::find($medId);
             $qty = rand(50, 200);
             $lineTotal = $qty * $med->purchase_price;
             $po->update([
-                'subtotal' => $lineTotal,
-                'total'    => $lineTotal,
+                'subtotal'     => $lineTotal,
+                'total_amount' => $lineTotal,
             ]);
 
-            PurchaseOrderItem::create([
+            $poItem = PurchaseOrderItem::create([
                 'purchase_order_id' => $po->id,
                 'medicine_id'       => $medId,
                 'quantity_ordered'  => $qty,
                 'quantity_received' => $qty,
                 'unit_price'        => $med->purchase_price,
-                'total_price'       => $lineTotal,
+                'subtotal'          => $lineTotal,
             ]);
 
             // GRN
@@ -162,30 +165,34 @@ class PharmacyModuleSeeder extends Seeder
                 'received_by'       => $adminId,
             ]);
 
-            GrnItem::create([
+            $grnItem = GrnItem::create([
                 'goods_received_note_id' => $grn->id,
-                'purchase_order_item_id' => $po->items->first()->id,
+                'purchase_order_item_id' => $poItem->id,
                 'medicine_id'            => $medId,
-                'quantity_ordered'       => $qty,
+                'batch_number'           => 'BATCH-' . strtoupper(substr(md5(rand()), 0, 8)),
+                'manufacturing_date'     => $poDate->copy()->subMonths(rand(1, 6)),
+                'expiry_date'            => $poDate->copy()->addYears(rand(1, 2))->addMonths(rand(0, 6)),
                 'quantity_received'      => $qty,
                 'unit_price'             => $med->purchase_price,
+                'sale_price'             => $med->sale_price,
+                'mrp'                    => $med->mrp,
             ]);
 
             // Stock Batch
             StockBatch::create([
-                'medicine_id'        => $medId,
-                'supplier_id'        => $supplierId,
-                'goods_received_note_id' => $grn->id,
-                'batch_number'       => 'BATCH-' . strtoupper(substr(md5(rand()), 0, 8)),
-                'manufacturing_date' => $poDate->copy()->subMonths(rand(1, 6)),
-                'expiry_date'        => $poDate->copy()->addYears(rand(1, 2))->addMonths(rand(0, 6)),
-                'quantity_received'  => $qty,
-                'quantity_available' => $qty,
-                'quantity_sold'      => 0,
-                'purchase_price'     => $med->purchase_price,
-                'sale_price'         => $med->sale_price,
-                'mrp'                => $med->mrp,
-                'is_active'          => true,
+                'medicine_id'             => $medId,
+                'supplier_id'             => $supplierId,
+                'goods_received_note_id'  => $grn->id,
+                'batch_number'            => $grnItem->batch_number,
+                'manufacturing_date'      => $grnItem->manufacturing_date,
+                'expiry_date'             => $grnItem->expiry_date,
+                'quantity_received'       => $qty,
+                'quantity_available'      => $qty,
+                'quantity_sold'           => 0,
+                'purchase_price'          => $med->purchase_price,
+                'sale_price'              => $med->sale_price,
+                'mrp'                     => $med->mrp,
+                'is_active'               => true,
             ]);
         }
 

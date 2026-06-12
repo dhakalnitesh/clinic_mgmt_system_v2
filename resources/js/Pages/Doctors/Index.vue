@@ -53,23 +53,24 @@
             <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ d.specialization || '--' }}</td>
             <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ d.phone || '--' }}</td>
 
-            <!-- Format JSON availability for display -->
+            <!-- Availability Days from Schedules -->
             <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-              <span v-if="d.availability_schedule && d.availability_schedule.length">
-                <span v-for="(a, i) in d.availability_schedule" :key="i">
-                  {{ a.day }} → {{ a.time }}<span v-if="i < d.availability_schedule.length - 1">, </span>
+              <div v-if="d.schedules?.length" class="flex flex-wrap gap-1">
+                <span v-for="s in d.schedules" :key="s.id"
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                  {{ s.day?.slice(0, 3) }}
                 </span>
-              </span>
-              <span v-else>--</span>
+              </div>
+              <span v-else class="text-gray-400 dark:text-gray-500 italic">--</span>
             </td>
 
             <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ d.created_at_bs || '--' }}</td>
 
             <!-- Actions -->
             <td class="px-6 py-4 flex gap-3 text-lg">
-              <button class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300" @click="openShowModal(d)" title="Show">
+              <Link :href="route('doctors.show', d.id)" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300" title="Show">
                 <i class="fas fa-eye"></i>
-              </button>
+              </Link>
 
               <button v-if="canEdit" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-300" @click="openEditModal(d)"
                 title="Edit">
@@ -98,7 +99,6 @@
     <CreateDoctorModal v-if="showCreateModal" @close="showCreateModal = false" @success="refreshData"/>
     <EditDoctorModal v-if="selectedItem" :doctor="selectedItem" @close="selectedItem = null" @success="refreshData"/>
     <DeleteDoctorModal v-if="deleteItem" :doctor="deleteItem" @close="deleteItem = null" @success="refreshData" />
-    <ShowDoctorModal v-if="showItem" :doctor="showItem" @close="showItem = null" @success="refreshData"/>
 
   </div>
   </AuthenticatedLayout>
@@ -106,7 +106,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import FilterBar from '@/Components/FilterBar.vue'
@@ -115,7 +115,6 @@ import Pagination from '@/Components/Pagination.vue'
 import CreateDoctorModal from './CreateModal.vue'
 import EditDoctorModal from './EditModal.vue'
 import DeleteDoctorModal from './DeleteModal.vue'
-import ShowDoctorModal from './ShowModal.vue'
 
 const props = defineProps({
     doctors: Object,
@@ -142,10 +141,8 @@ const refreshData = () => {
 const showCreateModal = ref(false)
 const selectedItem = ref(null)
 const deleteItem = ref(null)
-const showItem = ref(null)
 
 const openCreateModal = () => showCreateModal.value = true
 const openEditModal = (doctor) => selectedItem.value = doctor
 const openDeleteModal = (doctor) => deleteItem.value = doctor
-const openShowModal = (doctor) => showItem.value = doctor
 </script>

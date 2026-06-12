@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             NepalAddressSeeder::class,
+            LabModuleSeeder::class,
+            PharmacyModuleSeeder::class,
+            LabOrderSeeder::class,
         ]);
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();

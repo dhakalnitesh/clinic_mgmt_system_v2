@@ -1,10 +1,8 @@
 <?php
 
-
 namespace App\Http\Controllers\Doctor;
-use App\Http\Controllers\Controller;
 
-use App\Http\Requests\DoctorRequest;
+use App\Http\Controllers\Controller;
 use App\Models\Doctor\Doctor;
 use App\Models\Doctor\DoctorSchedule;
 use Illuminate\Http\Request;
@@ -14,60 +12,59 @@ use Inertia\Inertia;
 
 class DoctorController extends Controller
 {
-
-    // public function index()
-    // {
-    //     $doctors = Doctor::with('schedules')
-    //         ->latest()
-    //         ->get();
-
-    //     return Inertia::render('Doctors/Index', [
-    //         'doctors' => $doctors
-    //     ]);
-    // }
-
     public function index(Request $request)
-{
-    $doctors = Doctor::query()
+    {
+        $doctors = Doctor::with('schedules')
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('nmc_number', 'like', "%{$search}%")
+                        ->orWhere('specialization', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->start_date, function ($query, $date) {
+                $query->whereDate('created_at', '>=', $date);
+            })
+            ->when($request->end_date, function ($query, $date) {
+                $query->whereDate('created_at', '<=', $date);
+            })
+            ->latest()
+            ->paginate($request->per_page ?? 10)
+            ->withQueryString();
 
-        ->when($request->search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('nmc_number', 'like', "%{$search}%")
-                    ->orWhere('specialization', 'like', "%{$search}%");
-            });
-        })
+        return Inertia::render('Doctors/Index', [
+            'doctors' => $doctors,
+            'filters' => [
+                'search' => $request->search,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'per_page' => $request->per_page ?? 10,
+            ],
+            'can' => [
+                'create' => true,
+                'edit' => true,
+                'delete' => true,
+            ]
+        ]);
+    }
 
-        ->when($request->start_date, function ($query, $date) {
-            $query->whereDate('created_at', '>=', $date);
-        })
+    public function show(Doctor $doctor)
+    {
+        $doctor->load([
+            'schedules',
+            'consultations.patient',
+            'prescriptions.patient',
+            'labOrders.patient',
+            'followUps.patient',
+            'visits.patient',
+            'appointments.patient',
+        ]);
 
-        ->when($request->end_date, function ($query, $date) {
-            $query->whereDate('created_at', '<=', $date);
-        })
-
-        ->latest()
-        ->paginate($request->per_page ?? 10)
-        ->withQueryString();
-
-    return Inertia::render('Doctors/Index', [
-        'doctors' => $doctors,
-
-        'filters' => [
-            'search' => $request->search,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'per_page' => $request->per_page ?? 10,
-        ],
-
-        'can' => [
-            'create' => true,
-            'edit' => true,
-            'delete' => true,
-        ]
-    ]);
-}
+        return Inertia::render('Doctors/Show', [
+            'doctor' => $doctor,
+        ]);
+    }
     public function store(Request $request)
     {
         // dd($request->all());

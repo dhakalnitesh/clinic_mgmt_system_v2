@@ -37,7 +37,7 @@
             </button>
 
             <!-- Notifications / Help (Desktop only) -->
-            <div class="hidden md:flex gap-2">
+            <!-- <div class="hidden md:flex gap-2">
                 <div class="relative">
                     <button @click="toggleNotifications"
                         class="flex size-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
@@ -83,7 +83,7 @@
                 </div>
 
 
-            </div>
+            </div> -->
 
             <div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden md:block"></div>
 

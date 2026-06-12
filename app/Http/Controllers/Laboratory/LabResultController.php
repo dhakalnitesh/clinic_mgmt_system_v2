@@ -97,6 +97,8 @@ class LabResultController extends Controller
             );
         }
 
+        $labOrder->update(['status' => 'completed']);
+
         return redirect()
             ->route('laboratory.orders.show', $labOrder)
             ->with('success', 'Results saved successfully.');

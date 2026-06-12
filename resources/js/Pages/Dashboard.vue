@@ -138,20 +138,41 @@
 
             </div>
 
-            <!-- CHART -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h3 class="font-bold text-lg mb-4 text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                    <i class="fas fa-chart-bar text-teal-600"></i>
-                    Weekly Clinic Activity (Nepali Dates)
-                </h3>
+            <!-- CHARTS -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <div class="relative" style="height: 300px">
-                    <Bar
-                        v-if="chartData"
-                        :data="chartData"
-                        :options="chartOptions"
-                    />
+                <!-- Weekly Activity -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-teal-600"></i>
+                        Weekly Activity (Nepali Dates)
+                    </h3>
+
+                    <div class="relative" style="height: 260px">
+                        <Bar
+                            v-if="weeklyChartData"
+                            :data="weeklyChartData"
+                            :options="chartOptions"
+                        />
+                    </div>
                 </div>
+
+                <!-- Monthly Activity -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                        <i class="fas fa-chart-line text-teal-600"></i>
+                        Monthly Activity (Nepali Dates)
+                    </h3>
+
+                    <div class="relative" style="height: 260px">
+                        <Bar
+                            v-if="monthlyChartData"
+                            :data="monthlyChartData"
+                            :options="chartOptions"
+                        />
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -206,7 +227,7 @@ let refreshInterval = null
 
 onMounted(() => {
     refreshInterval = setInterval(() => {
-        router.reload({ only: ['todayAppointments', 'todayPatients', 'activeDoctors', 'todayVisits', 'weeklyData'] })
+        router.reload({ only: ['todayAppointments', 'todayPatients', 'activeDoctors', 'todayVisits', 'weeklyData', 'monthlyData'] })
     }, 30000)
 })
 
@@ -239,10 +260,10 @@ const statsWithIcons = computed(() => [
 ])
 
 const weeklyData = computed(() => page.props.weeklyData ?? [])
+const monthlyData = computed(() => page.props.monthlyData ?? [])
 
-const chartData = computed(() => {
+const weeklyChartData = computed(() => {
     if (!weeklyData.value.length) return null
-
     return {
         labels: weeklyData.value.map(d => d.nepali_date),
         datasets: [
@@ -259,6 +280,31 @@ const chartData = computed(() => {
                 data: weeklyData.value.map(d => d.visits),
                 backgroundColor: 'rgba(239, 68, 68, 0.7)',
                 hoverBackgroundColor: 'rgba(239, 68, 68, 0.9)',
+                borderRadius: 6,
+                borderSkipped: false,
+            },
+        ],
+    }
+})
+
+const monthlyChartData = computed(() => {
+    if (!monthlyData.value.length) return null
+    return {
+        labels: monthlyData.value.map(d => d.nepali_date),
+        datasets: [
+            {
+                label: 'Appointments',
+                data: monthlyData.value.map(d => d.appointments),
+                backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                hoverBackgroundColor: 'rgba(99, 102, 241, 0.9)',
+                borderRadius: 6,
+                borderSkipped: false,
+            },
+            {
+                label: 'Visits',
+                data: monthlyData.value.map(d => d.visits),
+                backgroundColor: 'rgba(251, 146, 60, 0.7)',
+                hoverBackgroundColor: 'rgba(251, 146, 60, 0.9)',
                 borderRadius: 6,
                 borderSkipped: false,
             },
