@@ -4,313 +4,228 @@ import { ref } from 'vue'
 
 const emit = defineEmits(['close'])
 
-/**
- * WEEKDAYS
- */
 const weekdays = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday'
+    'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ]
 
-/**
- * EVERYDAY CHECKBOX
- */
 const everydayAvailability = ref(false)
+const photoPreview = ref(null)
 
-/**
- * FORM (backend handles validation)
- */
 const form = useForm({
-  name: '',
-  nmc_number: '',
-  phone: '',
-  specialization: '',
-  consultation_fee: '',
-  photo: null,
-  address1: '',
-  notes: '',
-
-  doctor_schedule: []
+    name: '',
+    nmc_number: '',
+    phone: '',
+    specialization: '',
+    consultation_fee: '',
+    photo: null,
+    address1: '',
+    notes: '',
+    doctor_schedule: []
 })
 
-/**
- * CLEAR FIELD ERROR (backend errors only)
- */
 const clearFieldError = (field) => {
-  form.clearErrors(field)
+    form.clearErrors(field)
 }
 
-/**
- * GET TODAY DAY
- */
-const getTodayDay = () => {
-  return weekdays[new Date().getDay()]
-}
+const getTodayDay = () => weekdays[new Date().getDay()]
 
-/**
- * ADD SCHEDULE ROW
- */
 const addSchedule = () => {
-  form.doctor_schedule.push({
-    day: getTodayDay(),
-    start_time: null,
-    end_time: null,
-  })
+    form.doctor_schedule.push({
+        day: getTodayDay(),
+        start_time: null,
+        end_time: null,
+    })
 }
 
-/**
- * REMOVE SCHEDULE ROW
- */
 const removeSchedule = (index) => {
-  form.doctor_schedule.splice(index, 1)
+    form.doctor_schedule.splice(index, 1)
 }
 
-/**
- * EVERYDAY TOGGLE
- */
 const handleEverydayAvailability = () => {
-
-  if (everydayAvailability.value) {
-
-    form.doctor_schedule = weekdays.map(day => ({
-      day,
-      start_time: null,
-      end_time: null,
-    }))
-
-  } else {
-
-    form.doctor_schedule = []
-  }
-}
-
-/**
- * PHOTO UPLOAD
- */
-const handlePhotoUpload = (event) => {
-
-  const file = event.target.files[0]
-
-  if (file) {
-    form.photo = file
-    form.clearErrors('photo')
-  }
-}
-
-/**
- * SUBMIT (ONLY BACKEND VALIDATION)
- */
-const submit = () => {
-
-  form.clearErrors()
-
-  form.post(route('doctors.store'), {
-
-    preserveScroll: true,
-    forceFormData: true,
-
-    onSuccess: () => {
-
-      form.reset()
-
-      form.doctor_schedule = []
-
-      everydayAvailability.value = false
-
-      emit('close')
+    if (everydayAvailability.value) {
+        form.doctor_schedule = weekdays.map(day => ({
+            day,
+            start_time: null,
+            end_time: null,
+        }))
+    } else {
+        form.doctor_schedule = []
     }
-  })
+}
+
+const handlePhotoUpload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        form.photo = file
+        form.clearErrors('photo')
+        const reader = new FileReader()
+        reader.onload = (e) => { photoPreview.value = e.target.result }
+        reader.readAsDataURL(file)
+    }
+}
+
+const submit = () => {
+    form.clearErrors()
+    form.post(route('doctors.store'), {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            form.reset()
+            form.doctor_schedule = []
+            everydayAvailability.value = false
+            photoPreview.value = null
+            emit('close')
+        }
+    })
 }
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-    <div class="bg-white rounded-xl w-full max-w-3xl p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
-
-      <!-- HEADER -->
-      <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
-
-        <h3 class="text-2xl font-bold text-indigo-600">
-          Create Doctor
-        </h3>
-
-        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-700 text-3xl font-bold">
-          &times;
-        </button>
-
-      </div>
-
-      <form @submit.prevent="submit" enctype="multipart/form-data">
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          <!-- NAME -->
-          <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">Name <span class="text-red-600">*</span></label>
-
-            <input v-model="form.name" type="text" class="mt-2 border rounded-lg px-3 py-2"
-              @input="clearFieldError('name')" />
-
-            <div v-if="form.errors.name" class="text-red-600 text-sm mt-1">
-              {{ form.errors.name }}
-            </div>
-          </div>
-
-          <!-- NMC -->
-          <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">NMC Number <span class="text-red-600">*</span></label>
-
-            <input v-model="form.nmc_number" type="text" class="mt-2 border rounded-lg px-3 py-2"
-              @input="clearFieldError('nmc_number')" />
-
-            <div v-if="form.errors.nmc_number" class="text-red-600 text-sm mt-1">
-              {{ form.errors.nmc_number }}
-            </div>
-          </div>
-
-          <!-- PHONE -->
-          <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">Phone <span class="text-red-600">*</span></label>
-
-            <input v-model="form.phone" type="text" class="mt-2 border rounded-lg px-3 py-2"
-              @input="clearFieldError('phone')" />
-
-            <div v-if="form.errors.phone" class="text-red-600 text-sm mt-1">
-              {{ form.errors.phone }}
-            </div>
-          </div>
-
-          <!-- SPECIALIZATION -->
-          <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">Specialization</label>
-
-            <input v-model="form.specialization" type="text" class="mt-2 border rounded-lg px-3 py-2" />
-          </div>
-
-          <!-- FEE -->
-          <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">Consultation Fee</label>
-
-            <input v-model="form.consultation_fee" type="number" class="mt-2 border rounded-lg px-3 py-2" />
-          </div>
-
-          <!-- SCHEDULE -->
-          <div class="flex flex-col md:col-span-2">
-
-            <div class="flex items-center justify-between gap-3 flex-wrap">
-
-              <label class="text-sm font-medium text-gray-700">
-                Availability Schedule
-              </label>
-
-              <div class="flex items-center gap-2">
-                <input type="checkbox" v-model="everydayAvailability" @change="handleEverydayAvailability" />
-                <span class="text-sm">Available Everyday</span>
-              </div>
-
-              <button type="button" @click="addSchedule" class="text-sm bg-indigo-100 px-3 py-1 rounded-lg">
-                + Add Day
-              </button>
-
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
+            <!-- HEADER -->
+            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    <i class="fas fa-user-plus text-teal-600 mr-2"></i>Create Doctor
+                </h3>
+                <button @click="$emit('close')"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl leading-none">&times;</button>
             </div>
 
-            <div class="space-y-3 mt-3">
+            <form @submit.prevent="submit" enctype="multipart/form-data" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              <div v-for="(schedule, index) in form.doctor_schedule" :key="index"
-                class="grid grid-cols-1 md:grid-cols-4 gap-3 border p-4 rounded-xl">
+                    <!-- NAME -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name <span class="text-red-500">*</span></label>
+                        <input v-model="form.name" type="text"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:border-teal-500 focus:ring-teal-500"
+                            @input="clearFieldError('name')" />
+                        <p v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</p>
+                    </div>
 
-                <!-- DAY -->
-                <div class="flex flex-col gap-1">
-                  <label class="text-sm font-medium text-gray-700">
-                    Select Day
-                  </label>
+                    <!-- NMC -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">NMC Number <span class="text-red-500">*</span></label>
+                        <input v-model="form.nmc_number" type="text"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:border-teal-500 focus:ring-teal-500"
+                            @input="clearFieldError('nmc_number')" />
+                        <p v-if="form.errors.nmc_number" class="text-red-500 text-xs mt-1">{{ form.errors.nmc_number }}</p>
+                    </div>
 
-                  <select v-model="schedule.day" class="border rounded-lg px-3 py-2">
-                    <option v-for="day in weekdays" :key="day" :value="day">
-                      {{ day }}
-                    </option>
-                  </select>
+                    <!-- PHONE -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone <span class="text-red-500">*</span></label>
+                        <input v-model="form.phone" type="text" maxlength="10"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:border-teal-500 focus:ring-teal-500"
+                            @input="clearFieldError('phone')" />
+                        <p v-if="form.errors.phone" class="text-red-500 text-xs mt-1">{{ form.errors.phone }}</p>
+                    </div>
+
+                    <!-- SPECIALIZATION -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Specialization</label>
+                        <input v-model="form.specialization" type="text"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:border-teal-500 focus:ring-teal-500" />
+                    </div>
+
+                    <!-- FEE -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Consultation Fee (Rs.)</label>
+                        <input v-model="form.consultation_fee" type="number"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:border-teal-500 focus:ring-teal-500" />
+                    </div>
+
+                    <!-- ADDRESS -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                        <input v-model="form.address1" type="text"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:border-teal-500 focus:ring-teal-500" />
+                    </div>
+
+                    <!-- PHOTO -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Photo</label>
+                        <div v-if="photoPreview" class="mt-2">
+                            <img :src="photoPreview" alt="Preview" class="h-20 w-20 rounded-lg object-cover border border-gray-200 dark:border-gray-600" />
+                            <p class="text-xs text-gray-400 mt-1">Preview</p>
+                        </div>
+                        <input type="file" accept="image/*" @change="handlePhotoUpload"
+                            class="mt-1 block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-teal-900/30 dark:file:text-teal-300" />
+                        <p v-if="form.errors.photo" class="text-red-500 text-xs mt-1">{{ form.errors.photo }}</p>
+                    </div>
+
+                    <!-- SCHEDULE -->
+                    <div class="md:col-span-2">
+                        <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Availability Schedule</label>
+                            <div class="flex items-center gap-4">
+                                <label class="inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                                    <input type="checkbox" v-model="everydayAvailability" @change="handleEverydayAvailability"
+                                        class="rounded border-gray-300 text-teal-600 focus:ring-teal-500" />
+                                    Available Everyday
+                                </label>
+                                <button type="button" @click="addSchedule"
+                                    class="text-sm font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 bg-teal-50 dark:bg-teal-900/30 px-3 py-1.5 rounded-lg transition-colors">
+                                    + Add Day
+                                </button>
+                            </div>
+                        </div>
+
+                        <div v-if="form.doctor_schedule.length" class="space-y-2">
+                            <div v-for="(schedule, index) in form.doctor_schedule" :key="index"
+                                class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-end border border-gray-200 dark:border-gray-700 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Day</label>
+                                    <select v-model="schedule.day"
+                                        class="block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 text-sm">
+                                        <option v-for="day in weekdays" :key="day" :value="day">{{ day }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Start Time</label>
+                                    <input type="time" v-model="schedule.start_time"
+                                        class="block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 text-sm" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">End Time</label>
+                                    <input type="time" v-model="schedule.end_time"
+                                        class="block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 text-sm" />
+                                </div>
+                                <div>
+                                    <button type="button" @click="removeSchedule(index)"
+                                        class="w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-red-200 dark:border-red-900/30">
+                                        <i class="fas fa-trash-alt mr-1"></i>Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic">No schedule added. Click "+ Add Day" to add availability.</p>
+                    </div>
+
+                    <!-- NOTES -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                        <textarea v-model="form.notes" rows="3"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:border-teal-500 focus:ring-teal-500"></textarea>
+                    </div>
+
                 </div>
 
-                <!-- START TIME -->
-                <div class="flex flex-col gap-1">
-                  <label class="text-sm font-medium text-gray-700">
-                    Start Time
-                  </label>
-
-                  <input type="time" v-model="schedule.start_time" class="border rounded-lg px-3 py-2" />
+                <!-- BUTTONS -->
+                <div class="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <button type="button" @click="$emit('close')"
+                        class="px-5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" :disabled="form.processing"
+                        class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-60 flex items-center gap-2">
+                        <i v-if="form.processing" class="fas fa-spinner fa-spin"></i>
+                        <i v-else class="fas fa-save"></i>
+                        {{ form.processing ? 'Saving...' : 'Save Doctor' }}
+                    </button>
                 </div>
-
-                <!-- END TIME -->
-                <div class="flex flex-col gap-1">
-                  <label class="text-sm font-medium text-gray-700">
-                    End Time
-                  </label>
-
-                  <input type="time" v-model="schedule.end_time" class="border rounded-lg px-3 py-2" />
-                </div>
-
-                <!-- REMOVE -->
-                <div class="flex items-end">
-                  <button type="button" @click="removeSchedule(index)" class="text-red-600 hover:text-red-800">
-                    Remove
-                  </button>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- ADDRESS -->
-          <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">Address</label>
-
-            <input v-model="form.address1" type="text" class="mt-2 border rounded-lg px-3 py-2" />
-          </div>
-
-          <!-- PHOTO -->
-          <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">Photo</label>
-
-            <input type="file" accept="image/*" @change="handlePhotoUpload" class="mt-2" />
-
-            <div v-if="form.errors.photo" class="text-red-600 text-sm mt-1">
-              {{ form.errors.photo }}
-            </div>
-          </div>
-
-          <!-- NOTES -->
-          <div class="flex flex-col md:col-span-2">
-            <label class="text-sm font-medium text-gray-700">Notes</label>
-
-            <textarea v-model="form.notes" rows="4" class="mt-2 border rounded-lg px-3 py-2"></textarea>
-          </div>
-
+            </form>
         </div>
-
-        <!-- BUTTONS -->
-        <div class="mt-8 flex justify-end gap-4">
-
-          <button type="button" @click="$emit('close')" class="px-6 py-2 border rounded-lg">
-            Cancel
-          </button>
-
-          <button type="submit" :disabled="form.processing" class="px-6 py-2 bg-indigo-600 text-white rounded-lg">
-            {{ form.processing ? 'Saving...' : 'Save' }}
-          </button>
-
-        </div>
-
-      </form>
-
     </div>
-  </div>
 </template>

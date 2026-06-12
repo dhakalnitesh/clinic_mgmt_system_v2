@@ -36,11 +36,11 @@ const form = useForm({
   doctor_schedule: normalizeSchedule(props.doctor?.schedules)
 })
 
+const photoPreview = ref(null)
+
 const currentPhotoUrl = computed(() => {
-  if (props.doctor?.photo) {
-    return `/storage/${props.doctor.photo}`
-  }
-  return null
+  if (photoPreview.value) return photoPreview.value
+  return props.doctor?.photo_url ?? null
 })
 
 const clearFieldError = (field) => {
@@ -81,6 +81,9 @@ const handlePhotoUpload = (event) => {
   if (file) {
     form.photo = file
     form.clearErrors('photo')
+    const reader = new FileReader()
+    reader.onload = (e) => { photoPreview.value = e.target.result }
+    reader.readAsDataURL(file)
   }
 }
 
@@ -159,9 +162,9 @@ const submit = () => {
           <!-- PHOTO -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Photo</label>
-            <div v-if="currentPhotoUrl && !form.photo" class="mt-2">
-              <img :src="currentPhotoUrl" alt="Current photo" class="h-20 w-20 rounded-lg object-cover border border-gray-200 dark:border-gray-600" />
-              <p class="text-xs text-gray-400 mt-1">Current photo</p>
+            <div v-if="currentPhotoUrl" class="mt-2">
+              <img :src="currentPhotoUrl" alt="Doctor photo" class="h-20 w-20 rounded-lg object-cover border border-gray-200 dark:border-gray-600" />
+              <p class="text-xs text-gray-400 mt-1">{{ photoPreview ? 'New photo' : 'Current photo' }}</p>
             </div>
             <input type="file" accept="image/*" @change="handlePhotoUpload"
               class="mt-1 block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-teal-900/30 dark:file:text-teal-300" />

@@ -71,6 +71,7 @@ class DoctorDashboardController extends Controller
             ->map(fn ($visit) => [
                 'id' => $visit->id,
                 'patient_name' => $visit->patient->name,
+                'token_number' => $visit->token_number,
                 'visit_time' => optional($visit->created_at)->format('h:i A'),
                 'status' => $visit->status,
             ]);

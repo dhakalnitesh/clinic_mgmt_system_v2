@@ -72,6 +72,7 @@ const refreshData = () => { router.reload({ only: ['visits'] }) }
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Patient</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Doctor</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Symptoms</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Token</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Date</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Created (BS)</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Type</th>
@@ -90,6 +91,12 @@ const refreshData = () => { router.reload({ only: ['visits'] }) }
                   <div class="text-sm text-gray-500">{{ visit.doctor?.specialization || '-' }}</div>
                 </td>
                 <td class="px-6 py-4 text-sm">{{ visit.chief_complaint || '-' }}</td>
+                <td class="px-6 py-4">
+                  <span v-if="visit.token_number" class="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-xs font-mono font-bold border border-amber-200 dark:border-amber-800">
+                    {{ visit.token_number }}
+                  </span>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
                 <td class="px-6 py-4 text-sm">{{ formatDate(visit.visited_at) }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600 font-mono">{{ visit.created_at_bs || '-' }}</td>
                 <td class="px-6 py-4">

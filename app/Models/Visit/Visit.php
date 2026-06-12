@@ -15,6 +15,7 @@ class Visit extends Model
     protected $appends = ['created_at_bs'];
 
      protected $fillable = [
+        'token_number',
         'patient_id',
         'doctor_id',
         'appointment_id',

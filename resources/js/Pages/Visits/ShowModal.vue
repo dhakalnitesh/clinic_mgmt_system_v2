@@ -125,6 +125,20 @@
           </div>
         </div>
 
+        <!-- Token Number -->
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-700">
+            Token Number
+          </label>
+
+          <div class="mt-2 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 font-mono font-bold">
+            <span v-if="visit?.token_number" class="inline-flex items-center px-3 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+              {{ visit.token_number }}
+            </span>
+            <span v-else>—</span>
+          </div>
+        </div>
+
         <!-- Created BS -->
         <div class="flex flex-col">
           <label class="text-sm font-medium text-gray-700">

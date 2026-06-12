@@ -18,7 +18,7 @@ class Doctor extends Model
     protected $fillable = [
         'user_id', 'name', 'nmc_number', 'phone', 'photo', 'notes', 'specialization', 'address1', 'availability_schedule', 'consultation_fee'
     ];
-    protected $appends = ['created_at_bs'];
+    protected $appends = ['created_at_bs', 'photo_url'];
 
     protected $casts = [
         'consultation_fee' => 'decimal:2',

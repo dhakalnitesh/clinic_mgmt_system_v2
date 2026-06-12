@@ -113,14 +113,8 @@ class VisitController extends Controller
 // }
     public function store(Request $request)
     {
-        // dd($request->all());
         $validated = $request->validate([
             'patient_id' => 'nullable|exists:patients,id',
-            // have some problem with this validation 
-            // 'new_patient.name' => 'required_without:patient_id|string|max:255',
-            // 'new_patient.phone' => 'required_without:patient_id|string|max:20',
-            // 'new_patient.address1' => 'nullable|string|max:255',
-            // 'consultation_fee' => 'nullable',
             'doctor_id' => 'required|exists:doctors,id',
             'appointment_id' => 'nullable|exists:appointments,id',
             'visited_at' => 'nullable',
@@ -129,15 +123,12 @@ class VisitController extends Controller
             'visit_type' => 'nullable',
             'notes' => 'nullable|string',
         ]);
-        // dd($validated);
+
         try {
-
             DB::transaction(function () use ($validated) {
-
                 $patientId = $validated['patient_id'] ?? null;
 
                 if (!$patientId) {
-
                     $patient = Patient::create([
                         'name' => $validated['new_patient']['name'],
                         'phone' => $validated['new_patient']['phone'],
@@ -145,30 +136,70 @@ class VisitController extends Controller
                     ]);
                     $patientId = $patient->id;
                 }
-                // dd($patientId);
-                // dd($validated);
-                $exists = Visit::where('patient_id', $validated['patient_id'])
+
+                $visitedAt = $validated['visited_at'] ?? now();
+                $visitedDate = Carbon::parse($visitedAt)->format('Y-m-d');
+                $visitedTime = Carbon::parse($visitedAt)->format('H:i');
+
+                /**
+                 * RACE CONDITION CHECK: same doctor, same patient, same day
+                 */
+                $existingVisit = Visit::where('patient_id', $patientId)
                     ->where('doctor_id', $validated['doctor_id'])
-                    ->whereDate('visited_at', $validated['visited_at'])
+                    ->whereDate('visited_at', $visitedDate)
+                    ->whereIn('status', ['waiting', 'vitals_pending', 'in_consultation'])
                     ->exists();
 
-                if ($exists) {
-                    return back()->withErrors([
-                        'patient_id' => 'This patient already has an appointment with this doctor on this date.'
-                    ])->withInput();
+                if ($existingVisit) {
+                    throw new \Exception('This patient already has an active visit with this doctor today.');
                 }
+
+                /**
+                 * RACE CONDITION CHECK: same doctor, same time slot (within 30 min window)
+                 */
+                $timeSlotStart = Carbon::parse($visitedTime)->subMinutes(30)->format('H:i');
+                $timeSlotEnd = Carbon::parse($visitedTime)->addMinutes(30)->format('H:i');
+
+                $conflictingVisit = Visit::where('doctor_id', $validated['doctor_id'])
+                    ->whereDate('visited_at', $visitedDate)
+                    ->whereTime('visited_at', '>=', $timeSlotStart)
+                    ->whereTime('visited_at', '<=', $timeSlotEnd)
+                    ->whereIn('status', ['waiting', 'vitals_pending', 'in_consultation'])
+                    ->exists();
+
+                if ($conflictingVisit) {
+                    throw new \Exception('This doctor already has a visit scheduled within this time window. Please choose a different time.');
+                }
+
+                /**
+                 * AUTO-GENERATE TOKEN NUMBER
+                 * Format: TKN-{doctor_id}-{YYMMDD}-{NNN}
+                 */
+                $datePrefix = now()->format('ymd');
+                $lastVisit = Visit::where('doctor_id', $validated['doctor_id'])
+                    ->whereDate('created_at', today())
+                    ->orderByDesc('id')
+                    ->first();
+
+                if ($lastVisit && $lastVisit->token_number) {
+                    $parts = explode('-', $lastVisit->token_number);
+                    $lastSeq = (int) end($parts);
+                    $seq = str_pad($lastSeq + 1, 3, '0', STR_PAD_LEFT);
+                } else {
+                    $seq = '001';
+                }
+
+                $tokenNumber = 'TKN-' . $validated['doctor_id'] . '-' . $datePrefix . '-' . $seq;
+
                 Visit::create([
+                    'token_number' => $tokenNumber,
                     'patient_id' => $patientId,
                     'doctor_id' => $validated['doctor_id'],
                     'appointment_id' => $validated['appointment_id'] ?? null,
-                    'consultation_fee' => $validated['consultation_fee'] ?? null,
-                    'visited_at' => $validated['visited_at'] ?? now(),
-
-
+                    'visited_at' => $visitedAt,
                     'chief_complaint' => $validated['chief_complaint'] ?? null,
                     'diagnosis' => $validated['diagnosis'] ?? null,
                     'notes' => $validated['notes'] ?? null,
-
                     'status' => 'waiting',
                 ]);
             });
@@ -177,7 +208,6 @@ class VisitController extends Controller
                 ->back()
                 ->with('success', 'Visit created successfully.');
         } catch (\Throwable $e) {
-
             return back()->withErrors([
                 'error' => $e->getMessage()
             ]);
