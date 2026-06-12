@@ -7,10 +7,13 @@ use App\Models\Doctor\Doctor;
 use App\Models\Patient\Patient;
 use App\Models\User;
 use App\Models\Visit\Visit;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class FollowUp extends Model
 {
+    use HasFactory;
+
     protected $appends = ['created_at_bs', 'follow_up_date_bs'];
 
     protected $fillable = [

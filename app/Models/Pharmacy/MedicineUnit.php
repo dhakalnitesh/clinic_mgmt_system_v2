@@ -3,11 +3,14 @@
 namespace App\Models\Pharmacy;
 
 use App\Models\Pharmacy\Medicine as PharmacyMedicine;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MedicineUnit extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['name', 'abbreviation'];
 
     public function medicines()

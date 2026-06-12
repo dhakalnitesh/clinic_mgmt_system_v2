@@ -2,11 +2,14 @@
 
 namespace App\Models\Pharmacy;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GrnItem extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'goods_received_note_id',
         'medicine_id',

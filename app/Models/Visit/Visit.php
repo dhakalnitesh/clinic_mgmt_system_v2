@@ -8,10 +8,14 @@ use App\Models\Doctor\Doctor;
 use App\Models\Patient\Patient;
 use App\Models\Pharmacy\Prescription;
 use App\Models\Vitals\Vital;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Visit extends Model
 {
+    use HasFactory;
+
+
     protected $appends = ['created_at_bs'];
 
      protected $fillable = [

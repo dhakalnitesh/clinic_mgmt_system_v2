@@ -12,6 +12,7 @@ class LabOrder extends Model
 {
     use HasFactory;
 
+
     protected $appends = ['created_at_bs'];
 
     protected $fillable = [

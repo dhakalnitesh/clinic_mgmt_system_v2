@@ -4,10 +4,13 @@ namespace App\Models\Billing;
 
 use App\Models\Patient\Patient;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'invoice_number',
         'patient_id',

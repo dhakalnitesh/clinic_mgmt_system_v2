@@ -2,6 +2,7 @@
 
 namespace App\Models\Pharmacy;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,8 @@ use Carbon\Carbon;
 
 class StockBatch extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'medicine_id',
         'supplier_id',

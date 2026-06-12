@@ -15,7 +15,7 @@ class DoctorFactory extends Factory
             'name' => fake()->name(),
             'nmc_number' => 'NMC-' . fake()->unique()->randomNumber(5),
             'specialization' => fake()->randomElement(['General Physician', 'Cardiologist', 'Pediatrician', 'Orthopedic']),
-            'phone' => fake()->phoneNumber(),
+            'phone' => '984' . fake()->randomNumber(7, true),
             'consultation_fee' => fake()->randomFloat(2, 200, 1500),
         ];
     }

@@ -2,10 +2,14 @@
 
 namespace App\Models\Laboratory;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class LabTestParameter extends Model
 {
+    use HasFactory;
+
+
     protected $appends = ['created_at_bs'];
 
     protected $fillable = [

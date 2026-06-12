@@ -2,11 +2,14 @@
 
 namespace App\Models\Pharmacy;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalesReturnItem extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'sales_return_id',
         'sale_item_id',

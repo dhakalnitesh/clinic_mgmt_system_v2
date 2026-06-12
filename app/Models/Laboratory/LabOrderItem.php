@@ -9,6 +9,7 @@ class LabOrderItem extends Model
 {
     use HasFactory;
 
+
     protected $fillable = [
         'lab_order_id',
         'lab_test_id',

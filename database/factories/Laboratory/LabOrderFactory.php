@@ -2,7 +2,10 @@
 
 namespace Database\Factories\Laboratory;
 
+use App\Models\Consultation\Consultation;
+use App\Models\Doctor\Doctor;
 use App\Models\Laboratory\LabOrder;
+use App\Models\Patient\Patient;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,11 +16,12 @@ class LabOrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'patient_id'   => \App\Models\Patient\Patient::factory(),
-            'doctor_id'    => User::factory(),
+            'consultation_id' => Consultation::factory(),
+            'patient_id' => Patient::factory(),
+            'doctor_id' => Doctor::factory(),
             'order_number' => 'LAB-' . strtoupper(fake()->bothify('####??')),
-            'status'       => 'ordered',
-            'created_by'   => User::factory(),
+            'status' => 'ordered',
+            'created_by' => User::factory(),
         ];
     }
 }

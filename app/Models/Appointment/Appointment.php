@@ -5,18 +5,20 @@ namespace App\Models\Appointment;
 use App\Casts\NepaliDateCast;
 use App\Models\Doctor\Doctor;
 use App\Models\Patient\Patient;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Appointment extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'patient_id',
         'doctor_id',
         'appointment_date',
         'appointment_time',
         'status',
-        'consultation_fee',
-        'reason'
+        'reasons'
     ];
 
     protected function casts(): array

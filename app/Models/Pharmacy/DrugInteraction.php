@@ -2,6 +2,7 @@
 
 namespace App\Models\Pharmacy;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
@@ -9,6 +10,8 @@ use Illuminate\Support\Collection;
 
 class DrugInteraction extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'generic_id_1',
         'generic_id_2',

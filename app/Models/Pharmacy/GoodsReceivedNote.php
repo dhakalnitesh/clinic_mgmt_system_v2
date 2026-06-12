@@ -2,6 +2,7 @@
 
 namespace App\Models\Pharmacy;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,8 @@ use App\Models\User;
 
 class GoodsReceivedNote extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'supplier_id', 'purchase_order_id', 'received_by', 'verified_by',
         'grn_number', 'received_date', 'invoice_number', 'invoice_date',
