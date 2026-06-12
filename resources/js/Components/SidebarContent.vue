@@ -113,20 +113,20 @@ const directLinks = [
 ]
 
 const expandableModules = [
-    {
-        module: 'Pharmacy',
-        icon: 'fa-capsules',
-        items: [
-            { index_url: '/pharmacy', index_name: 'Dashboard' },
-            { index_url: '/pharmacy/medicines', index_name: 'Medicines' },
-            { index_url: '/pharmacy/inventory', index_name: 'Inventory' },
-            { index_url: '/pharmacy/sales', index_name: 'Sales' },
-            { index_url: '/pharmacy/purchase-orders', index_name: 'Purchase Orders' },
-            { index_url: '/pharmacy/grn', index_name: 'Goods Received' },
-            { index_url: '/pharmacy/suppliers', index_name: 'Suppliers' },
-            { index_url: '/pharmacy/prescriptions', index_name: 'Prescriptions' },
-        ],
-    },
+    // {
+    //     module: 'Pharmacy',
+    //     icon: 'fa-capsules',
+    //     items: [
+    //         { index_url: '/pharmacy', index_name: 'Dashboard' },
+    //         { index_url: '/pharmacy/medicines', index_name: 'Medicines' },
+    //         { index_url: '/pharmacy/inventory', index_name: 'Inventory' },
+    //         { index_url: '/pharmacy/sales', index_name: 'Sales' },
+    //         { index_url: '/pharmacy/purchase-orders', index_name: 'Purchase Orders' },
+    //         { index_url: '/pharmacy/grn', index_name: 'Goods Received' },
+    //         { index_url: '/pharmacy/suppliers', index_name: 'Suppliers' },
+    //         { index_url: '/pharmacy/prescriptions', index_name: 'Prescriptions' },
+    //     ],
+    // },
     {
         module: 'Laboratory',
         icon: 'fa-flask',

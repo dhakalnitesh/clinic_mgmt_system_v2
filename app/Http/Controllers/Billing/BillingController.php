@@ -48,6 +48,41 @@ class BillingController extends Controller
         ]);
     }
 
+    public function printAllInvoices(Request $request)
+    {
+        $query = Invoice::with(['patient']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhereHas('patient', function ($pq) use ($search) {
+                      $pq->where('name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $invoices = $query->latest()->get();
+
+        return Inertia::render('Billing/PrintInvoiceList', [
+            'invoices' => $invoices,
+            'filters' => $request->only(['search', 'start_date', 'end_date', 'status']),
+        ]);
+    }
+
     public function payments(Request $request)
     {
         $query = Payment::with(['invoice.patient']);
@@ -115,7 +150,12 @@ class BillingController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $invoice->payments()->create([
+        $patientId = $invoice->patient_id;
+        $receiptCount = Payment::whereHas('invoice', fn($q) => $q->where('patient_id', $patientId))->count() + 1;
+        $receiptNumber = 'bill-' . str_pad($patientId, 3, '0', STR_PAD_LEFT) . '-' . str_pad($receiptCount, 3, '0', STR_PAD_LEFT);
+
+        $payment = $invoice->payments()->create([
+            'receipt_number' => $receiptNumber,
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'payment_date' => now(),
@@ -125,12 +165,35 @@ class BillingController extends Controller
         $totalPaid = $invoice->payments()->sum('amount');
 
         if ($totalPaid >= $invoice->total) {
-            $invoice->update(['status' => 'paid']);
+            $invoice->update(['status' => 'paid', 'paid_amount' => $totalPaid]);
         } elseif ($totalPaid > 0) {
-            $invoice->update(['status' => 'partial']);
+            $invoice->update(['status' => 'partial', 'paid_amount' => $totalPaid]);
         }
 
-        return back()->with('success', 'Payment recorded successfully.');
+        return redirect()->route('billing.payments.receipt', $payment->id);
+    }
+
+    public function paymentReceipt($paymentId)
+    {
+        $payment = Payment::with(['invoice.patient', 'invoice.items'])->findOrFail($paymentId);
+
+        return Inertia::render('Billing/PrintPaymentReceipt', [
+            'payment' => $payment,
+            'invoice' => $payment->invoice,
+        ]);
+    }
+
+    public function patientPaymentHistory(Patient $patient)
+    {
+        $payments = Payment::with(['invoice'])
+            ->whereHas('invoice', fn($q) => $q->where('patient_id', $patient->id))
+            ->latest()
+            ->get();
+
+        return Inertia::render('Billing/PatientPaymentHistory', [
+            'patient' => $patient->load('payments'),
+            'payments' => $payments,
+        ]);
     }
 
     public function printInvoice(Invoice $invoice)

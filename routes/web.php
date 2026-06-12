@@ -298,9 +298,12 @@ Route::prefix('pharmacy')
 // Billing
 Route::prefix('billing')->name('billing.')->group(function () {
     Route::get('/invoices', [BillingController::class, 'invoices'])->name('invoices');
+    Route::get('/invoices/print-all', [BillingController::class, 'printAllInvoices'])->name('invoices.print-all');
     Route::get('/payments', [BillingController::class, 'payments'])->name('payments');
     Route::post('/invoices', [BillingController::class, 'storeInvoice'])->name('invoices.store');
     Route::patch('/invoices/{invoice}/pay', [BillingController::class, 'pay'])->name('invoices.pay');
+    Route::get('/payments/{payment}/receipt', [BillingController::class, 'paymentReceipt'])->name('payments.receipt');
+    Route::get('/payments/patient/{patient}', [BillingController::class, 'patientPaymentHistory'])->name('payments.patient');
     Route::get('/invoices/{invoice}/print', [BillingController::class, 'printInvoice'])->name('invoices.print');
 });
 

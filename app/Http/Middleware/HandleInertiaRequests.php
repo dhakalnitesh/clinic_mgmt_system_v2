@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Anuzpandey\LaravelNepaliDate\LaravelNepaliDate;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -37,6 +38,13 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user?->load('roles', 'doctor'),
                 'doctor' => $user?->doctor,
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'info' => fn () => $request->session()->get('info'),
+            ],
+            'today_bs' => fn () => LaravelNepaliDate::from(now()->format('Y-m-d'))->toNepaliDate(),
         ];
     }
 }

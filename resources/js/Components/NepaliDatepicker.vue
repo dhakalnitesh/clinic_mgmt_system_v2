@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="relative" ref="containerRef">
     <input
       type="text"
       readonly
@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
@@ -48,6 +48,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const containerRef = ref(null)
 
 const showPicker = ref(false)
 const year = ref(2080)
@@ -95,6 +97,15 @@ const today = () => {
   emit('update:modelValue', `${currentBsYear}-01-01`)
   showPicker.value = false
 }
+
+function handleClickOutside(e) {
+  if (containerRef.value && !containerRef.value.contains(e.target)) {
+    showPicker.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('mousedown', handleClickOutside))
+onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 
 watch(showPicker, (val) => {
   if (val && props.modelValue) {

@@ -1,6 +1,10 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
-import { ref, onMounted } from 'vue'
+import { Head, usePage } from '@inertiajs/vue3'
+import { ref, computed, onMounted } from 'vue'
+
+const page = usePage()
+const todayAD = computed(() => new Date().toLocaleDateString('en-CA'))
+const todayBS = computed(() => page.props.today_bs || '—')
 
 const props = defineProps({
     prescription: Object,
@@ -96,7 +100,8 @@ const goBack = () => window.history.back()
 
             <!-- Footer -->
             <div class="border-t border-gray-200 pt-4 text-center text-xs text-gray-400">
-                <p>This is a computer-generated prescription.</p>
+                <p>{{ todayAD }} (BS: {{ todayBS }})</p>
+                <p class="mt-1">This is a computer-generated prescription.</p>
             </div>
         </div>
     </div>

@@ -103,11 +103,13 @@
       </div>
     </Teleport>
   </div>
+    <Toast />
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
+import Toast from '@/Components/Toast.vue'
 // import { route } from 'ziggy-js'
 // import {route}
 const props = defineProps({

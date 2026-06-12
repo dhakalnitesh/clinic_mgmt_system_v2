@@ -38,6 +38,7 @@
             </main>
         </div>
     </div>
+    <Toast />
 </template>
 
 <script setup>
@@ -47,6 +48,7 @@ import { usePage } from '@inertiajs/vue3'
 import Navbar from '@/Components/Navbar.vue'
 import Sidebar from '@/Components/Sidebar.vue'
 import Footer from '@/Components/Footer.vue'
+import Toast from '@/Components/Toast.vue'
 
 usePage()
 

@@ -50,13 +50,7 @@ const submitInvoice = () => {
 
 const submitPayment = (invoice) => {
     payForm.amount = payForm.amount || invoice.total - (invoice.payments?.reduce((s, p) => s + p.amount, 0) || 0)
-    payForm.patch(route('billing.invoices.pay', invoice.id), {
-        preserveScroll: true,
-        onSuccess: () => {
-            showPayModal.value = null
-            payForm.reset()
-        }
-    })
+    payForm.patch(route('billing.invoices.pay', invoice.id))
 }
 
 const statusClass = (status) => {
@@ -82,10 +76,17 @@ const paidAmount = (invoice) => invoice.payments?.reduce((s, p) => s + p.amount,
                     </h1>
                     <p class="text-sm text-gray-600 dark:text-gray-400">Manage patient billing and invoices</p>
                 </div>
-                <button @click="showCreateModal = true"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow">
-                    + New Invoice
-                </button>
+                <div class="flex items-center gap-2">
+                    <a :href="route('billing.invoices.print-all', filters)" target="_blank"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition"
+                        title="Print All Invoices">
+                        <i class="fas fa-print"></i> Print All
+                    </a>
+                    <button @click="showCreateModal = true"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow">
+                        + New Invoice
+                    </button>
+                </div>
             </div>
 
             <FilterBar
