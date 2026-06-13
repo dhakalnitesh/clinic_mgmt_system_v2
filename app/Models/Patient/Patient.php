@@ -5,6 +5,8 @@ namespace App\Models\Patient;
 use App\Models\Address\Province;
 use App\Models\Address\District;
 use App\Models\Address\Municipal;
+use App\Models\Billing\Invoice;
+use App\Models\Billing\Payment;
 use App\Models\Laboratory\LabOrder;
 use App\Models\Visit\Visit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -86,5 +88,10 @@ $patient->uhid = 'PAT-' . $year . '-' . str_pad($number, 6, '0', STR_PAD_LEFT); 
 public function labOrders()
 {
     return $this->hasMany(LabOrder::class);
+}
+
+public function payments()
+{
+    return $this->hasManyThrough(Payment::class, Invoice::class, 'patient_id', 'invoice_id', 'id', 'id');
 }
 }

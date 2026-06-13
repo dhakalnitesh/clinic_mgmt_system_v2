@@ -1,6 +1,6 @@
 <script setup>
 import { Head, usePage } from '@inertiajs/vue3'
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 
 const page = usePage()
 const todayAD = computed(() => new Date().toLocaleDateString('en-CA'))
@@ -9,8 +9,6 @@ const todayBS = computed(() => page.props.today_bs || '—')
 const props = defineProps({
     labOrder: Object,
 })
-
-const isPrinting = ref(true)
 
 const isAbnormal = (value, range) => {
     if (!value || !range) return false
@@ -23,33 +21,15 @@ const isAbnormal = (value, range) => {
 
 onMounted(() => {
     setTimeout(() => window.print(), 300)
-    setTimeout(() => {
-        isPrinting.value = false
-    }, 1000)
 })
 
-const goBack = () => window.history.back()
+
 </script>
 
 <template>
     <Head :title="'Lab Report - ' + labOrder.order_number" />
 
-    <!-- Toolbar -->
-    <div v-if="isPrinting" class="fixed top-0 inset-x-0 z-50 bg-indigo-600 text-white px-6 py-3 flex items-center justify-between print:hidden shadow-lg">
-        <span class="font-semibold">Print Preview</span>
-        <div class="flex items-center gap-3">
-            <button @click="window.print()"
-                    class="px-5 py-1.5 bg-white text-indigo-700 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition">
-                <i class="fas fa-print mr-2"></i>Print
-            </button>
-            <button @click="goBack"
-                    class="px-4 py-1.5 text-sm font-medium text-white/80 hover:text-white transition">
-                <i class="fas fa-arrow-left mr-1"></i> Back
-            </button>
-        </div>
-    </div>
-
-    <div class="mx-auto max-w-4xl bg-white p-8 pt-16 print:pt-8">
+    <div class="mx-auto max-w-4xl bg-white p-8">
         <div class="mb-8 border-b-2 border-gray-300 pb-6">
             <div class="flex items-center justify-between">
                 <div>

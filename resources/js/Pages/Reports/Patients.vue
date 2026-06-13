@@ -63,6 +63,11 @@ defineProps({
                     </table>
                 </div>
                 <div v-if="patients?.data?.length" class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-t px-6 py-4">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        Showing <span class="font-medium">{{ patients.from || 0 }}</span>
+                        to <span class="font-medium">{{ patients.to || 0 }}</span>
+                        of <span class="font-medium">{{ patients.total }}</span> results
+                    </div>
                     <Pagination :links="patients.links" />
                 </div>
             </div>

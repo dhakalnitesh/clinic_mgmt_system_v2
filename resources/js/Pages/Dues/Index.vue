@@ -43,7 +43,7 @@ const submitInvoice = () => {
 }
 
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-NP', { style: 'currency', currency: 'NPR' }).format(amount || 0)
+    return 'Rs. ' + Number(amount || 0).toLocaleString()
 }
 
 const payInvoice = (invoice) => {
@@ -54,6 +54,8 @@ const payInvoice = (invoice) => {
         })
     }
 }
+
+const paidAmount = (invoice) => invoice.payments?.reduce((s, p) => p.amount > 0 ? s + p.amount : s, 0) || 0
 </script>
 
 <template>
@@ -76,52 +78,26 @@ const payInvoice = (invoice) => {
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30">
-                            <i class="fas fa-clock text-red-600 dark:text-red-400 text-xl"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats?.pending_invoices || 0 }}</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Pending Invoices</div>
-                        </div>
-                    </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-3 text-center">
+                    <div class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ stats?.pending_invoices || 0 }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Pending Invoices</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                            <i class="fas fa-exclamation-triangle text-amber-600 dark:text-amber-400 text-xl"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats?.partial_invoices || 0 }}</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Partial Paid</div>
-                        </div>
-                    </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-3 text-center">
+                    <div class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ stats?.partial_invoices || 0 }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Partial Paid</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                            <i class="fas fa-money-bill-wave text-emerald-600 dark:text-emerald-400 text-xl"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatCurrency(stats?.total_due) }}</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Total Due</div>
-                        </div>
-                    </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-3 text-center">
+                    <div class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ formatCurrency(stats?.total_due) }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Total Due</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30">
-                            <i class="fas fa-exclamation-circle text-red-600 dark:text-red-400 text-xl"></i>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats?.overdue_count || 0 }}</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Overdue (30+ days)</div>
-                        </div>
-                    </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-3 text-center">
+                    <div class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ stats?.overdue_count || 0 }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Overdue</div>
                 </div>
             </div>
+
+
 
             <!-- Filter -->
             <FilterBar
@@ -142,6 +118,7 @@ const payInvoice = (invoice) => {
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">Paid</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">Due</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">Due Date</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">Date</th>
                                 <th class="px-6 py-4 text-right text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">Actions</th>
                             </tr>
@@ -161,8 +138,8 @@ const payInvoice = (invoice) => {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{{ formatCurrency(due.total) }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ formatCurrency(due.payments?.reduce((s, p) => s + p.amount, 0)) }}</td>
-                                <td class="px-6 py-4 text-sm font-bold text-red-600">{{ formatCurrency(due.total - (due.payments?.reduce((s, p) => s + p.amount, 0) || 0)) }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ formatCurrency(paidAmount(due)) }}</td>
+                                <td class="px-6 py-4 text-sm font-bold text-red-600">{{ formatCurrency(due.total - paidAmount(due)) }}</td>
                                 <td class="px-6 py-4">
                                     <span class="rounded-full px-3 py-1 text-xs font-semibold" :class="{
                                         'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300': due.status === 'pending',
@@ -171,17 +148,24 @@ const payInvoice = (invoice) => {
                                         {{ due.status }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                    <span v-if="due.due_date" :class="{'text-red-600 font-semibold': new Date(due.due_date) < new Date()}">
+                                        {{ due.due_date }}
+                                    </span>
+                                    <span v-else class="text-gray-400">-</span>
+                                </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{{ due.created_at ? new Date(due.created_at).toLocaleDateString() : '-' }}</td>
                                 <td class="px-6 py-4 text-right">
                                     <button @click="payInvoice(due)"
-                                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-                                        :disabled="due.status === 'paid'">
-                                        <i class="fas fa-check mr-1"></i> Pay
+                                        class="p-2 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                        :disabled="due.status === 'paid'"
+                                        title="Record payment">
+                                        <i class="fas fa-hand-holding-usd text-lg"></i>
                                     </button>
                                 </td>
                             </tr>
                             <tr v-if="!dues?.data?.length">
-                                <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="9" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                     <i class="fas fa-check-circle text-3xl text-emerald-400 mb-3 block"></i>
                                     No outstanding dues. All invoices are paid!
                                 </td>

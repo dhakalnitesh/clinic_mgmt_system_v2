@@ -36,12 +36,22 @@ const reportLinks = [
                     </h1>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Overview of clinic statistics and performance</p>
                 </div>
-                <div class="flex gap-2">
-                    <a :href="route('reports.appointments.export')"
-                        class="text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <i class="fas fa-file-csv mr-1"></i> Export CSV
-                    </a>
-                </div>
+            </div>
+
+            <!-- Quick Export Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <a :href="route('reports.appointments.export')"
+                    class="text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <i class="fas fa-file-csv mr-1"></i> Export Appointments
+                </a>
+                <a :href="route('reports.revenue.export')"
+                    class="text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <i class="fas fa-file-csv mr-1"></i> Export Revenue
+                </a>
+                <a :href="route('reports.patients.export')"
+                    class="text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <i class="fas fa-file-csv mr-1"></i> Export Patients
+                </a>
             </div>
 
             <!-- Stats Grid -->

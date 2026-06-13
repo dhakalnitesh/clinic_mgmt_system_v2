@@ -41,10 +41,21 @@ class BillingController extends Controller
         $invoices = $query->latest()->paginate($request->per_page ?? 10)->withQueryString();
         $patients = Patient::orderBy('name')->get(['id', 'name', 'phone']);
 
+        // Stats
+        $stats = [
+            'today_revenue' => Invoice::whereDate('created_at', today())->sum('total'),
+            'today_collected' => \App\Models\Billing\Payment::whereDate('payment_date', today())->sum('amount'),
+            'pending_count' => Invoice::pending()->count(),
+            'overdue_count' => Invoice::overdue()->count(),
+            'total_outstanding' => Invoice::active()->get()->sum(fn($i) => $i->due_amount),
+            'cancelled_count' => Invoice::cancelled()->count(),
+        ];
+
         return Inertia::render('Billing/Invoices', [
             'invoices' => $invoices,
             'patients' => $patients,
             'filters' => $request->only(['search', 'start_date', 'end_date', 'per_page', 'status']),
+            'stats' => $stats,
         ]);
     }
 
@@ -112,20 +123,27 @@ class BillingController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
+            'tax_percent' => 'nullable|numeric|min:0|max:100',
+            'due_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
         $subtotal = collect($validated['items'])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
         $discount = $validated['discount'] ?? 0;
-        $total = max(0, $subtotal - $discount);
+        $taxPercent = $validated['tax_percent'] ?? 0;
+        $taxAmount = $subtotal * $taxPercent / 100;
+        $total = max(0, $subtotal - $discount + $taxAmount);
 
         $invoice = Invoice::create([
             'patient_id' => $validated['patient_id'],
             'invoice_number' => 'INV-' . now()->format('Ymd') . '-' . str_pad(Invoice::max('id') + 1 ?? 1, 4, '0', STR_PAD_LEFT),
             'subtotal' => $subtotal,
             'discount' => $discount,
+            'tax_percent' => $taxPercent,
+            'tax_amount' => $taxAmount,
             'total' => $total,
             'status' => 'pending',
+            'due_date' => $validated['due_date'] ?? null,
             'notes' => $validated['notes'] ?? null,
             'created_by' => auth()->id(),
         ]);
@@ -140,6 +158,112 @@ class BillingController extends Controller
         }
 
         return back()->with('success', 'Invoice created successfully.');
+    }
+
+    public function updateInvoice(Request $request, Invoice $invoice)
+    {
+        if ($invoice->status === Invoice::STATUS_CANCELLED) {
+            return back()->with('error', 'Cannot edit a cancelled invoice.');
+        }
+
+        $validated = $request->validate([
+            'patient_id' => 'required|exists:patients,id',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'tax_percent' => 'nullable|numeric|min:0|max:100',
+            'due_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        $subtotal = collect($validated['items'])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
+        $discount = $validated['discount'] ?? 0;
+        $taxPercent = $validated['tax_percent'] ?? 0;
+        $taxAmount = $subtotal * $taxPercent / 100;
+        $total = max(0, $subtotal - $discount + $taxAmount);
+
+        $invoice->update([
+            'patient_id' => $validated['patient_id'],
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'tax_percent' => $taxPercent,
+            'tax_amount' => $taxAmount,
+            'total' => $total,
+            'due_date' => $validated['due_date'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        $invoice->items()->delete();
+        foreach ($validated['items'] as $item) {
+            $invoice->items()->create([
+                'description' => $item['description'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'total_price' => $item['quantity'] * $item['unit_price'],
+            ]);
+        }
+
+        return back()->with('success', 'Invoice updated successfully.');
+    }
+
+    public function cancelInvoice(Invoice $invoice)
+    {
+        if ($invoice->status === Invoice::STATUS_CANCELLED) {
+            return back()->with('error', 'Invoice is already cancelled.');
+        }
+        if ($invoice->status === Invoice::STATUS_PAID) {
+            return back()->with('error', 'Cannot cancel a fully paid invoice. Issue a refund instead.');
+        }
+
+        $invoice->update(['status' => Invoice::STATUS_CANCELLED]);
+
+        return back()->with('success', 'Invoice cancelled successfully.');
+    }
+
+    public function refund(Request $request, Invoice $invoice)
+    {
+        if ($invoice->paid_amount <= 0) {
+            return back()->with('error', 'No payments to refund.');
+        }
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01|lte:' . $invoice->paid_amount,
+            'notes' => 'nullable|string',
+        ]);
+
+        $refundAmount = $validated['amount'];
+
+        $invoice->payments()->create([
+            'amount' => -$refundAmount,
+            'payment_method' => 'refund',
+            'payment_date' => now(),
+            'notes' => 'Refund: ' . ($validated['notes'] ?? 'Refund processed'),
+        ]);
+
+        $invoice->increment('refunded_amount', $refundAmount);
+        $newPaid = $invoice->paid_amount - $refundAmount;
+
+        if ($newPaid <= 0) {
+            $invoice->update(['paid_amount' => 0, 'status' => Invoice::STATUS_PENDING]);
+        } else {
+            $invoice->update(['paid_amount' => $newPaid, 'status' => Invoice::STATUS_PARTIAL]);
+        }
+
+        return back()->with('success', 'Refund of Rs. ' . number_format($refundAmount, 2) . ' processed successfully.');
+    }
+
+    public function destroyInvoice(Invoice $invoice)
+    {
+        if ($invoice->payments()->count() > 0) {
+            return back()->with('error', 'Cannot delete invoice with payments. Cancel it instead.');
+        }
+
+        $invoice->items()->delete();
+        $invoice->delete();
+
+        return back()->with('success', 'Invoice deleted successfully.');
     }
 
     public function pay(Request $request, Invoice $invoice)
@@ -162,7 +286,7 @@ class BillingController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        $totalPaid = $invoice->payments()->sum('amount');
+        $totalPaid = $invoice->payments()->where('amount', '>', 0)->sum('amount');
 
         if ($totalPaid >= $invoice->total) {
             $invoice->update(['status' => 'paid', 'paid_amount' => $totalPaid]);
@@ -191,7 +315,7 @@ class BillingController extends Controller
             ->get();
 
         return Inertia::render('Billing/PatientPaymentHistory', [
-            'patient' => $patient->load('payments'),
+            'patient' => $patient,
             'payments' => $payments,
         ]);
     }

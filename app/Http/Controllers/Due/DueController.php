@@ -38,10 +38,41 @@ class DueController extends Controller
 
         // Calculate summary stats
         $totalDue = Invoice::whereIn('status', ['pending', 'partial'])->sum('total');
-        $totalPaidSoFar = Invoice::whereIn('status', ['partial'])->withSum('payments', 'amount')->get()->sum('payments_sum_amount');
-        $overdueCount = Invoice::whereIn('status', ['pending', 'partial'])
-            ->whereDate('created_at', '<', now()->subDays(30))
-            ->count();
+        $totalPaidSoFar = Invoice::whereIn('status', ['partial'])->get()->sum(fn($i) => $i->payments()->where('amount', '>', 0)->sum('amount'));
+        $overdueCount = Invoice::active()
+            ->where(function ($q) {
+                $q->whereDate('due_date', '<', now())
+                  ->orWhere(function ($q2) {
+                      $q2->whereNull('due_date')->whereDate('created_at', '<', now()->subDays(30));
+                  });
+            })->count();
+
+        $agingBuckets = [
+            '0_30' => Invoice::active()->where(function ($q) {
+                $q->whereDate('due_date', '>=', now()->subDays(30))
+                  ->orWhere(function ($q2) {
+                      $q2->whereNull('due_date')->whereDate('created_at', '>=', now()->subDays(30));
+                  });
+            })->count(),
+            '31_60' => Invoice::active()->where(function ($q) {
+                $q->whereDate('due_date', '<', now()->subDays(30))->whereDate('due_date', '>=', now()->subDays(60))
+                  ->orWhere(function ($q2) {
+                      $q2->whereNull('due_date')->whereDate('created_at', '<', now()->subDays(30))->whereDate('created_at', '>=', now()->subDays(60));
+                  });
+            })->count(),
+            '61_90' => Invoice::active()->where(function ($q) {
+                $q->whereDate('due_date', '<', now()->subDays(60))->whereDate('due_date', '>=', now()->subDays(90))
+                  ->orWhere(function ($q2) {
+                      $q2->whereNull('due_date')->whereDate('created_at', '<', now()->subDays(60))->whereDate('created_at', '>=', now()->subDays(90));
+                  });
+            })->count(),
+            '90_plus' => Invoice::active()->where(function ($q) {
+                $q->whereDate('due_date', '<', now()->subDays(90))
+                  ->orWhere(function ($q2) {
+                      $q2->whereNull('due_date')->whereDate('created_at', '<', now()->subDays(90));
+                  });
+            })->count(),
+        ];
 
         return Inertia::render('Dues/Index', [
             'dues' => $dues,
@@ -52,6 +83,7 @@ class DueController extends Controller
                 'pending_invoices' => Invoice::where('status', 'pending')->count(),
                 'partial_invoices' => Invoice::where('status', 'partial')->count(),
                 'overdue_count' => $overdueCount,
+                'aging' => $agingBuckets,
             ],
         ]);
     }

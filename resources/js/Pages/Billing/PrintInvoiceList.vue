@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Head, usePage } from '@inertiajs/vue3'
 
 const page = usePage()
@@ -9,7 +9,6 @@ const props = defineProps({
     filters: Object,
 })
 
-const isPrinting = ref(true)
 const todayAD = computed(() => new Date().toLocaleDateString('en-CA'))
 const todayBS = computed(() => page.props.today_bs || '—')
 
@@ -18,10 +17,9 @@ const totalPaid = computed(() => props.invoices.reduce((s, inv) => s + Number(in
 
 onMounted(() => {
     setTimeout(() => window.print(), 500)
-    setTimeout(() => { isPrinting.value = false }, 1000)
 })
 
-const goBack = () => window.history.back()
+
 
 const statusClass = (status) => {
     switch (status) {
@@ -35,21 +33,7 @@ const statusClass = (status) => {
 <template>
     <Head title="Invoices Report" />
 
-    <div v-if="isPrinting" class="fixed top-0 inset-x-0 z-50 bg-indigo-600 text-white px-6 py-3 flex items-center justify-between print:hidden shadow-lg">
-        <span class="font-semibold">Print Preview</span>
-        <div class="flex items-center gap-3">
-            <button @click="window.print()"
-                    class="px-5 py-1.5 bg-white text-indigo-700 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition">
-                <i class="fas fa-print mr-2"></i>Print
-            </button>
-            <button @click="goBack"
-                    class="px-4 py-1.5 text-sm font-medium text-white/80 hover:text-white transition">
-                <i class="fas fa-arrow-left mr-1"></i> Back
-            </button>
-        </div>
-    </div>
-
-    <div class="mx-auto max-w-6xl bg-white p-8 pt-16 print:pt-4">
+    <div class="mx-auto max-w-6xl bg-white p-8">
         <div class="text-center mb-6 border-b border-gray-300 pb-4">
             <h1 class="text-2xl font-bold text-gray-900">Invoice Report</h1>
             <p class="text-sm text-gray-500">{{ todayAD }} (BS: {{ todayBS }})</p>

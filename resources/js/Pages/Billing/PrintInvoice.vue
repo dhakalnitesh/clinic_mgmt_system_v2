@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Head, usePage } from '@inertiajs/vue3'
 
 const page = usePage()
@@ -11,39 +11,17 @@ const props = defineProps({
 const todayAD = computed(() => new Date().toLocaleDateString('en-CA'))
 const todayBS = computed(() => page.props.today_bs || '—')
 
-const isPrinting = ref(true)
-
-const paidAmount = (invoice) => invoice.payments?.reduce((s, p) => s + p.amount, 0) || 0
+const paidAmount = (invoice) => invoice.payments?.reduce((s, p) => p.amount > 0 ? s + p.amount : s, 0) || 0
 
 onMounted(() => {
     setTimeout(() => window.print(), 300)
-    setTimeout(() => {
-        isPrinting.value = false
-    }, 1000)
 })
-
-const goBack = () => window.history.back()
 </script>
 
 <template>
     <Head title="Invoice - {{ invoice.invoice_number }}" />
 
-    <!-- Toolbar -->
-    <div v-if="isPrinting" class="fixed top-0 inset-x-0 z-50 bg-indigo-600 text-white px-6 py-3 flex items-center justify-between print:hidden shadow-lg">
-        <span class="font-semibold">Print Preview</span>
-        <div class="flex items-center gap-3">
-            <button @click="window.print()"
-                    class="px-5 py-1.5 bg-white text-indigo-700 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition">
-                <i class="fas fa-print mr-2"></i>Print
-            </button>
-            <button @click="goBack"
-                    class="px-4 py-1.5 text-sm font-medium text-white/80 hover:text-white transition">
-                <i class="fas fa-arrow-left mr-1"></i> Back
-            </button>
-        </div>
-    </div>
-
-    <div class="min-h-screen bg-gray-100 p-4 print:bg-white print:p-0 pt-16 print:pt-0">
+    <div class="min-h-screen bg-gray-100 p-4 print:bg-white print:p-0">
         <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 print:shadow-none print:rounded-none">
             <div class="flex justify-between items-start border-b border-gray-300 pb-6 mb-6">
                 <div>
@@ -100,7 +78,15 @@ const goBack = () => window.history.back()
                         <span class="text-gray-600">Discount</span>
                         <span class="text-red-600">- Rs. {{ Number(invoice.discount).toLocaleString() }}</span>
                     </div>
-                     <div class="flex justify-between text-base border-t border-gray-300 pt-2">
+                    <div v-if="invoice.tax_percent > 0" class="flex justify-between text-sm">
+                        <span class="text-gray-600">Tax ({{ invoice.tax_percent }}%)</span>
+                        <span>Rs. {{ Number(invoice.tax_amount).toLocaleString() }}</span>
+                    </div>
+                    <div v-if="invoice.due_date" class="flex justify-between text-sm">
+                        <span class="text-gray-600">Due Date</span>
+                        <span>{{ invoice.due_date }}</span>
+                    </div>
+                    <div class="flex justify-between text-base border-t border-gray-300 pt-2">
                         <span>Total</span>
                         <span>Rs. {{ Number(invoice.total).toLocaleString() }}</span>
                     </div>
@@ -129,7 +115,9 @@ const goBack = () => window.history.back()
                         <tr v-for="p in invoice.payments" :key="p.id" class="border-b border-gray-100">
                             <td class="py-1 text-sm">{{ new Date(p.payment_date || p.created_at).toLocaleDateString() }}</td>
                             <td class="py-1 text-sm capitalize">{{ p.payment_method }}</td>
-                            <td class="py-1 text-sm text-right">Rs. {{ Number(p.amount).toLocaleString() }}</td>
+                            <td class="py-1 text-sm text-right" :class="{'text-red-600': p.amount < 0}">
+                                {{ p.amount < 0 ? '- Rs. ' + Math.abs(p.amount).toLocaleString() : 'Rs. ' + Number(p.amount).toLocaleString() }}
+                            </td>
                         </tr>
                     </tbody>
                 </table>

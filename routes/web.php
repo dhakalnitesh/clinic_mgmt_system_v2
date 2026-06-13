@@ -94,8 +94,6 @@ Route::prefix('doctor')
             ->name('profile');
     });
 
-
-
 Route::resource('/visits', VisitController::class);
 Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus'])
     ->name('appointments.updateStatus');
@@ -302,6 +300,10 @@ Route::prefix('billing')->name('billing.')->group(function () {
     Route::get('/payments', [BillingController::class, 'payments'])->name('payments');
     Route::post('/invoices', [BillingController::class, 'storeInvoice'])->name('invoices.store');
     Route::patch('/invoices/{invoice}/pay', [BillingController::class, 'pay'])->name('invoices.pay');
+    Route::patch('/invoices/{invoice}', [BillingController::class, 'updateInvoice'])->name('invoices.update');
+    Route::patch('/invoices/{invoice}/cancel', [BillingController::class, 'cancelInvoice'])->name('invoices.cancel');
+    Route::post('/invoices/{invoice}/refund', [BillingController::class, 'refund'])->name('invoices.refund');
+    Route::delete('/invoices/{invoice}', [BillingController::class, 'destroyInvoice'])->name('invoices.destroy');
     Route::get('/payments/{payment}/receipt', [BillingController::class, 'paymentReceipt'])->name('payments.receipt');
     Route::get('/payments/patient/{patient}', [BillingController::class, 'patientPaymentHistory'])->name('payments.patient');
     Route::get('/invoices/{invoice}/print', [BillingController::class, 'printInvoice'])->name('invoices.print');

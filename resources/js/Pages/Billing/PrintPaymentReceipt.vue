@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Head, usePage } from '@inertiajs/vue3'
 
 const page = usePage()
@@ -9,7 +9,6 @@ const props = defineProps({
     invoice: Object,
 })
 
-const isPrinting = ref(true)
 const todayAD = computed(() => new Date().toLocaleDateString('en-CA'))
 const todayBS = computed(() => page.props.today_bs || '—')
 
@@ -18,30 +17,15 @@ const dueAmount = computed(() => Math.max(0, Number(props.invoice.total) - paidA
 
 onMounted(() => {
     setTimeout(() => window.print(), 300)
-    setTimeout(() => { isPrinting.value = false }, 1000)
 })
 
-const goBack = () => window.history.back()
+
 </script>
 
 <template>
     <Head :title="'Receipt - ' + payment.receipt_number" />
 
-    <div v-if="isPrinting" class="fixed top-0 inset-x-0 z-50 bg-indigo-600 text-white px-6 py-3 flex items-center justify-between print:hidden shadow-lg">
-        <span class="font-semibold">Print Preview</span>
-        <div class="flex items-center gap-3">
-            <button @click="window.print()"
-                    class="px-5 py-1.5 bg-white text-indigo-700 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition">
-                <i class="fas fa-print mr-2"></i>Print
-            </button>
-            <button @click="goBack"
-                    class="px-4 py-1.5 text-sm font-medium text-white/80 hover:text-white transition">
-                <i class="fas fa-arrow-left mr-1"></i> Back
-            </button>
-        </div>
-    </div>
-
-    <div class="mx-auto max-w-2xl bg-white p-8 pt-16 print:pt-4">
+    <div class="mx-auto max-w-2xl bg-white p-8">
         <div class="text-center mb-6 border-b-2 border-gray-800 pb-4">
             <h1 class="text-2xl font-bold text-gray-900">Payment Receipt</h1>
             <p class="font-mono text-lg font-semibold text-indigo-600 mt-1">{{ payment.receipt_number }}</p>
