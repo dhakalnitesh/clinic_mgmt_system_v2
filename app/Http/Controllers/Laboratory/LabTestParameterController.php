@@ -67,21 +67,6 @@ class LabTestParameterController extends Controller
     ]);
 }
 
-    public function create()
-    {
-        return Inertia::render(
-            'Laboratory/TestParameters/Create',
-            [
-                'labTests' => LabTest::active()
-                    ->orderBy('name')
-                    ->get([
-                        'id',
-                        'name',
-                    ]),
-            ]
-        );
-    }
-
     public function store(Request $request)
     {
         $validated = $request->validate([

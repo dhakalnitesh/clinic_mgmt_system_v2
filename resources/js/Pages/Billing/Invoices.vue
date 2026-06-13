@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
+import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import FilterBar from '@/Components/FilterBar.vue'
 import Pagination from '@/Components/Pagination.vue'
@@ -71,10 +71,9 @@ const total = (items, discount, taxPercent) => {
 const submitInvoice = () => {
     form.post(route('billing.invoices.store'), {
         preserveScroll: true,
-        onSuccess: () => {
-            form.reset()
-            showCreateModal.value = false
-        }
+        onError: () => {
+            // stay open so validation errors are visible
+        },
     })
 }
 
@@ -244,6 +243,10 @@ const formatCurrency = (amount) => {
                                     {{ formatCurrency(Math.max(0, inv.total - paidAmount(inv))) }}
                                 </td>
                                 <td class="px-6 py-4 text-right space-x-2">
+                                    <Link :href="route('billing.invoices.show', inv.id)"
+                                        class="text-gray-600 hover:text-indigo-800" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </Link>
                                     <a :href="route('billing.invoices.print', inv.id)" target="_blank"
                                         class="text-indigo-600 hover:text-indigo-800" title="Print Invoice">
                                         <i class="fas fa-print"></i>

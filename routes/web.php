@@ -158,7 +158,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('laboratory')->name('laborator
 
     // Test Parameters
     Route::resource('test-parameters', LabTestParameterController::class)
-        ->except(['show']);
+        ->except(['show', 'create']);
 });
 
 
@@ -295,6 +295,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('billing')->name('billing.')->
     Route::get('/payments/{payment}/receipt', [BillingController::class, 'paymentReceipt'])->name('payments.receipt');
     Route::get('/payments/patient/{patient}', [BillingController::class, 'patientPaymentHistory'])->name('payments.patient');
     Route::get('/invoices/{invoice}/print', [BillingController::class, 'printInvoice'])->name('invoices.print');
+    Route::get('/invoices/{invoice}', [BillingController::class, 'showInvoice'])->name('invoices.show');
 });
 
 // Due Management

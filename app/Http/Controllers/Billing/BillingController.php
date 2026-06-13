@@ -157,7 +157,8 @@ class BillingController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Invoice created successfully.');
+        return redirect()->route('billing.invoices.print', $invoice)
+            ->with('success', 'Invoice created successfully.');
     }
 
     public function updateInvoice(Request $request, Invoice $invoice)
@@ -326,6 +327,23 @@ class BillingController extends Controller
 
         return Inertia::render('Billing/PrintInvoice', [
             'invoice' => $invoice,
+        ]);
+    }
+
+    public function showInvoice(Invoice $invoice)
+    {
+        $invoice->load(['patient', 'items', 'payments']);
+
+        $patientHistory = Invoice::with(['items', 'payments'])
+            ->where('patient_id', $invoice->patient_id)
+            ->where('id', '!=', $invoice->id)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return Inertia::render('Billing/InvoiceShow', [
+            'invoice' => $invoice,
+            'patientHistory' => $patientHistory,
         ]);
     }
 }
