@@ -4,12 +4,15 @@ import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import NepaliDatepicker from '@/Components/NepaliDatepicker.vue'
 import Pagination from '@/Components/Pagination.vue'
+import CreateModal from './CreateModal.vue'
 
 const props = defineProps({
     parameters: Object,
+    labTests: Array,
     filters: Object,
 })
 
+const showCreateModal = ref(false)
 const search = ref(props.filters?.search ?? '')
 const status = ref(props.filters?.status ?? '')
 const fromDate = ref(props.filters?.from_date ?? '')
@@ -45,11 +48,11 @@ const resetFilters = () => {
                     <h1 class="text-2xl font-bold text-slate-900">Lab Test Parameters</h1>
                     <p class="mt-1 text-sm text-slate-500">Manage laboratory test parameters and reference ranges.</p>
                 </div>
-                <Link :href="route('laboratory.test-parameters.create')"
-                      class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 active:scale-95 transition-all">
+                <button @click="showCreateModal = true"
+                        class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 active:scale-95 transition-all">
                     <i class="fas fa-plus"></i>
                     Add Parameter
-                </Link>
+                </button>
             </div>
 
             <!-- Filters -->
@@ -148,5 +151,11 @@ const resetFilters = () => {
                 </div>
             </div>
         </div>
+        <CreateModal
+            v-if="showCreateModal"
+            :lab-tests="labTests"
+            @close="showCreateModal = false"
+            @success="showCreateModal = false"
+        />
     </AuthenticatedLayout>
 </template>

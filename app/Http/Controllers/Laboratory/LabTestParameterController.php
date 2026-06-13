@@ -53,6 +53,10 @@ class LabTestParameterController extends Controller
     return Inertia::render('Laboratory/TestParameters/Index', [
         'parameters' => $parameters,
 
+        'labTests' => LabTest::active()
+            ->orderBy('name')
+            ->get(['id', 'name']),
+
         'filters' => [
             'search' => $request->search,
             'status' => $request->status,

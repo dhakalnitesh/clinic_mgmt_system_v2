@@ -288,72 +288,145 @@ const formatCurrency = (amount) => {
 
             <!-- Create Invoice Modal -->
             <div v-if="showCreateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-                <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-xl shadow-2xl p-6">
-                    <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-3">
-                        <h2 class="text-xl font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <div class="bg-white w-full max-w-xl rounded-xl shadow-2xl">
+                    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-bold text-indigo-600 flex items-center gap-2">
                             <i class="fas fa-file-invoice"></i>
                             New Invoice
                         </h2>
-                        <button @click="showCreateModal = false" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+                        <button @click="showCreateModal = false" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
                     </div>
-                    <form @submit.prevent="submitInvoice">
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Patient <span class="text-red-500">*</span></label>
+
+                    <div class="px-6 py-4 max-h-[70vh] overflow-y-auto space-y-4">
+                        <div v-if="form.errors.patient_id || form.errors.items || form.errors.error"
+                             class="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                            <p v-if="form.errors.error" class="text-sm text-red-600">{{ form.errors.error }}</p>
+                            <p v-if="form.errors.patient_id" class="text-sm text-red-600">{{ form.errors.patient_id }}</p>
+                            <p v-if="form.errors.items" class="text-sm text-red-600">{{ form.errors.items }}</p>
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">
+                                Patient <span class="text-red-500">*</span>
+                            </label>
                             <Combobox
                                 v-model="form.patient_id"
                                 :options="patients"
                                 label-key="name"
                                 value-key="id"
                                 placeholder="Search patient..."
+                                class="mt-1"
                             />
+                            <p v-if="form.errors.patient_id" class="text-xs text-red-500 mt-0.5">{{ form.errors.patient_id }}</p>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="text-sm font-medium text-gray-700">Items</label>
-                                <button type="button" @click="addItem(form)" class="text-xs text-indigo-600 hover:text-indigo-800">+ Add Item</button>
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-sm font-medium text-gray-700">Items <span class="text-red-500">*</span></label>
+                                <button type="button" @click="addItem(form)"
+                                        class="text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                                    <i class="fas fa-plus"></i> Add Item
+                                </button>
                             </div>
-                            <div v-for="(item, i) in form.items" :key="i" class="flex gap-1.5 mb-1.5">
-                                <input v-model="item.description" placeholder="Description" class="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
-                                <input v-model.number="item.quantity" type="number" min="1" class="w-16 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-2 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
-                                <input v-model.number="item.unit_price" type="number" min="0" step="0.01" placeholder="Price" class="w-24 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-2 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
-                                <button v-if="form.items.length > 1" type="button" @click="removeItem(form, i)" class="text-red-500 px-1.5">&times;</button>
+                            <p v-if="form.errors.items" class="text-xs text-red-600 mb-2">{{ form.errors.items }}</p>
+
+                            <div class="space-y-2">
+                                <div v-for="(item, i) in form.items" :key="i"
+                                     class="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div class="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">{{ i + 1 }}</span>
+                                            <span class="font-medium text-gray-800 text-sm truncate">{{ item.description || 'New item' }}</span>
+                                        </div>
+                                        <button v-if="form.items.length > 1" type="button" @click="removeItem(form, i)"
+                                                class="text-gray-400 hover:text-red-500 text-lg leading-none">&times;</button>
+                                    </div>
+                                    <div class="p-3 grid grid-cols-3 gap-2">
+                                        <div class="col-span-3">
+                                            <label class="text-xs text-gray-500">Description</label>
+                                            <input v-model="item.description" placeholder="Item description"
+                                                   class="w-full mt-0.5 border border-gray-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-gray-500">Qty</label>
+                                            <input v-model.number="item.quantity" type="number" min="1"
+                                                   class="w-full mt-0.5 border border-gray-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-gray-500">Unit Price</label>
+                                            <input v-model.number="item.unit_price" type="number" min="0" step="0.01" placeholder="0.00"
+                                                   class="w-full mt-0.5 border border-gray-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+                                        </div>
+                                        <div class="flex items-end justify-end pb-1">
+                                            <span class="text-sm font-semibold text-gray-700">Rs. {{ (item.quantity * item.unit_price).toLocaleString() }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="!form.items.length"
+                                 class="border-2 border-dashed border-gray-200 rounded-lg py-8 text-center text-gray-400 mt-2">
+                                <i class="fas fa-receipt text-2xl mb-1 opacity-40"></i>
+                                <p class="text-sm">Click "Add Item" above</p>
                             </div>
                         </div>
 
-                        <div class="mb-3 grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Discount (Rs.)</label>
-                                <input v-model.number="form.discount" type="number" min="0" step="0.01" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+                                <label class="text-sm font-medium text-gray-700">Discount (Rs.)</label>
+                                <input v-model.number="form.discount" type="number" min="0" step="0.01"
+                                       class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax (%)</label>
-                                <input v-model.number="form.tax_percent" type="number" min="0" max="100" step="0.01" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+                                <label class="text-sm font-medium text-gray-700">Tax (%)</label>
+                                <input v-model.number="form.tax_percent" type="number" min="0" max="100" step="0.01"
+                                       class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due Date</label>
-                            <input v-model="form.due_date" type="date" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Due Date</label>
+                            <input v-model="form.due_date" type="date"
+                                   class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
                         </div>
 
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
-                            <textarea v-model="form.notes" rows="2" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition"></textarea>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Notes</label>
+                            <textarea v-model="form.notes" rows="2"
+                                      class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition resize-none"></textarea>
                         </div>
 
-                        <div class="mb-4 text-right">
-                            <div class="text-xs text-gray-500">Subtotal: {{ formatCurrency(subtotal(form.items)) }}</div>
-                            <div v-if="form.tax_percent > 0" class="text-xs text-gray-500">Tax ({{ form.tax_percent }}%): {{ formatCurrency(taxAmount(form.items, form.tax_percent)) }}</div>
-                            <div v-if="form.discount > 0" class="text-xs text-gray-500">Discount: -{{ formatCurrency(form.discount) }}</div>
-                            <div class="text-lg font-semibold text-indigo-600">{{ formatCurrency(total(form.items, form.discount, form.tax_percent)) }}</div>
+                        <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-1">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Subtotal</span>
+                                <span>{{ formatCurrency(subtotal(form.items)) }}</span>
+                            </div>
+                            <div v-if="form.tax_percent > 0" class="flex justify-between text-sm text-gray-600">
+                                <span>Tax ({{ form.tax_percent }}%)</span>
+                                <span>{{ formatCurrency(taxAmount(form.items, form.tax_percent)) }}</span>
+                            </div>
+                            <div v-if="form.discount > 0" class="flex justify-between text-sm text-gray-600">
+                                <span>Discount</span>
+                                <span>-{{ formatCurrency(form.discount) }}</span>
+                            </div>
+                            <div class="flex justify-between text-base font-bold text-indigo-600 border-t border-gray-200 pt-1">
+                                <span>Total</span>
+                                <span>{{ formatCurrency(total(form.items, form.discount, form.tax_percent)) }}</span>
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="flex justify-end gap-3 pt-3 border-t border-gray-200">
-                            <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition text-sm">Cancel</button>
-                            <button type="submit" :disabled="form.processing" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition text-sm">Create Invoice</button>
-                        </div>
-                    </form>
+                    <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                        <button type="button" @click="showCreateModal = false"
+                                class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium transition">
+                            Cancel
+                        </button>
+                        <button type="button" :disabled="form.processing" @click="submitInvoice"
+                                class="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 text-sm font-medium transition">
+                            <i v-if="form.processing" class="fas fa-spinner fa-spin mr-1"></i>
+                            {{ form.processing ? 'Saving...' : 'Create Invoice' }}
+                        </button>
+                    </div>
                 </div>
             </div>
 
