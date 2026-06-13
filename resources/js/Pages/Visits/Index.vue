@@ -74,7 +74,7 @@ const refreshData = () => { router.reload({ only: ['visits'] }) }
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Symptoms</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Token</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Date</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Created (BS)</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Date (BS)</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-600">Type</th>
                 <th class="px-6 py-4 text-right text-xs font-semibold uppercase text-gray-600">Actions</th>
               </tr>
@@ -109,7 +109,7 @@ const refreshData = () => { router.reload({ only: ['visits'] }) }
                     <button class="text-blue-600 hover:text-blue-800" @click="showVisit = visit" title="Show">
                       <i class="fas fa-eye"></i>
                     </button>
-                    <Link :href="route('consultations.create', visit.id)"
+                    <Link v-if="visit.status !== 'completed' && visit.status !== 'cancelled'" :href="route('consultations.create', visit.id)"
                       class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
                       <i class="fas fa-stethoscope"></i> Start Consultation
                     </Link>

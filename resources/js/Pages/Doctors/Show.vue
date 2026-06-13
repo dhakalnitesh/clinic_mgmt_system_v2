@@ -39,11 +39,11 @@
                         <div class="bg-gradient-to-r from-teal-600 to-teal-700 h-24"></div>
 
                         <div class="px-6 pb-6 -mt-12 text-center">
-                            <div class="mx-auto size-24 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-white shadow-lg">
+                            <div class="mx-auto size-40 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-white shadow-lg">
                                 <img v-if="doctor.photo_url" :src="doctor.photo_url"
                                     :alt="doctor.name" class="size-full object-cover" />
                                 <div v-else class="size-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center">
-                                    <i class="fas fa-user-md text-3xl text-teal-600 dark:text-teal-400"></i>
+                                    <i class="fas fa-user-md text-5xl text-teal-600 dark:text-teal-400"></i>
                                 </div>
                             </div>
 

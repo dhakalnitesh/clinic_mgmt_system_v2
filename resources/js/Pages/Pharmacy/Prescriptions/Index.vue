@@ -3,22 +3,13 @@
     <div class="mb-6 flex items-start justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Prescriptions</h1>
-        <p class="mt-0.5 text-sm text-slate-500">Manage and dispense patient prescriptions</p>
+        <p class="mt-0.5 text-sm text-slate-500">Manage patient prescriptions</p>
       </div>
       <button @click="showCreateModal = true"
               class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 active:scale-95 transition-all">
         <PlusIcon class="w-4 h-4" />
         New Prescription
       </button>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-3 gap-4 mb-6">
-      <SummaryCard label="Pending"   :value="summary.pending"   color="amber" icon="clock"
-                   :clickable="true" @click="setStatus('pending')" />
-      <SummaryCard label="Partial"   :value="summary.partial"   color="orange" icon="warning"
-                   :clickable="true" @click="setStatus('partial')" />
-      <SummaryCard label="Dispensed" :value="summary.dispensed" color="teal"  icon="check" />
     </div>
 
     <!-- Status Tabs -->
@@ -79,8 +70,8 @@
               <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Patient</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Doctor</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Status</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Dispensed</th>
-              <th class="px-4 py-3 w-12"></th>
+
+              <th class="px-4 py-3 w-12">Action</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -109,19 +100,10 @@
                     {{ capitalize(rx.status) }}
                   </span>
                 </td>
-                <td class="px-4 py-3 text-xs text-slate-500">
-                  {{ rx.dispensed_by ?? '—' }}
-                  <span v-if="rx.dispensed_at" class="block text-slate-400">{{ rx.dispensed_at }}</span>
-                </td>
                 <td class="px-4 py-3">
                   <ActionMenu>
                     <ActionItem :href="route('pharmacy.prescriptions.show', rx.id)" icon="eye">
                       View
-                    </ActionItem>
-                    <ActionItem v-if="['pending','partial'].includes(rx.status)"
-                                :href="route('pharmacy.sales.create') + '?prescription_id=' + rx.id"
-                                icon="check">
-                      Dispense
                     </ActionItem>
                   </ActionMenu>
                 </td>
@@ -161,7 +143,6 @@ import {
   PlusIcon, MagnifyingGlassIcon, ClipboardDocumentListIcon,
 } from '@heroicons/vue/24/outline'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import SummaryCard  from '@/Components/SummaryCard.vue'
 import Pagination   from '@/Components/Pagination.vue'
 import ActionMenu   from '@/Components/ActionMenu.vue'
 import ActionItem   from '@/Components/ActionItem.vue'

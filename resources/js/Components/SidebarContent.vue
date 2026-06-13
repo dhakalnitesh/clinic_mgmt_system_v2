@@ -23,7 +23,7 @@
             <ul class="space-y-1">
 
                 <!-- Clinical Section -->
-                <li v-if="!collapsed" class="px-3 py-1">
+                <li v-if="!collapsed && directLinks.length > 1" class="px-3 py-1">
                     <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Clinical</span>
                 </li>
 
@@ -37,10 +37,10 @@
                     </a>
                 </li>
 
-                <li v-if="!collapsed" class="my-1 border-t border-gray-100 dark:border-gray-800"></li>
+                <li v-if="!collapsed && expandableModules.length > 0" class="my-1 border-t border-gray-100 dark:border-gray-800"></li>
 
                 <!-- Operations Section -->
-                <li v-if="!collapsed" class="px-3 py-1">
+                <li v-if="!collapsed && expandableModules.length > 0" class="px-3 py-1">
                     <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Operations</span>
                 </li>
 
@@ -72,8 +72,8 @@
             </ul>
         </nav>
 
-        <!-- BOTTOM: Reports (sticky) -->
-        <div class="flex-shrink-0 px-2 pb-1">
+        <!-- BOTTOM: Reports (sticky, admin only) -->
+        <div v-if="isAdmin" class="flex-shrink-0 px-2 pb-1">
             <div v-if="!collapsed" class="mt-1.5 mb-0.5 border-t border-gray-200 dark:border-gray-700"></div>
 
             <a href="/reports" :class="linkClass('/reports')" @click="onLinkClick" :title="collapsed ? 'Reports' : undefined">
@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { usePage } from '@inertiajs/vue3'
 
 const props = defineProps({
@@ -102,7 +102,12 @@ const page = usePage()
 const pageUrl = page.url || '/'
 const openMenu = ref(null)
 
-const directLinks = [
+const user = computed(() => page.props.auth?.user)
+const isAdmin = computed(() =>
+    user.value?.roles?.some(r => r.name === 'admin')
+)
+
+const allDirectLinks = [
     { label: 'Doctor Management', icon: 'fa-user-md', path: '/doctors' },
     { label: 'Patient Management', icon: 'fa-hospital-user', path: '/patients' },
     { label: 'Appointment', icon: 'fa-calendar-check', path: '/appointments' },
@@ -112,7 +117,13 @@ const directLinks = [
     { label: 'Follow-ups', icon: 'fa-calendar-alt', path: '/follow-ups' },
 ]
 
-const expandableModules = [
+const directLinks = computed(() =>
+    isAdmin.value
+        ? allDirectLinks
+        : allDirectLinks.filter(item => item.path === '/doctors')
+)
+
+const allExpandableModules = [
     // {
     //     module: 'Pharmacy',
     //     icon: 'fa-capsules',
@@ -148,11 +159,15 @@ const expandableModules = [
     },
 ]
 
+const expandableModules = computed(() =>
+    isAdmin.value ? allExpandableModules : []
+)
+
 const isActiveModule = (mod) =>
     mod.items.some(item => pageUrl.startsWith(item.index_url))
 
 watch(() => page.url, (url) => {
-    for (const mod of expandableModules) {
+    for (const mod of expandableModules.value) {
         if (isActiveModule(mod)) {
             openMenu.value = mod.module
             return

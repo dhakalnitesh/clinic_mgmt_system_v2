@@ -3,6 +3,11 @@ namespace App\Http\Controllers\Consultation;
 use App\Http\Controllers\Controller;
 
 use App\Models\Consultation\Consultation;
+use App\Models\FollowUp\FollowUp;
+use App\Models\Laboratory\LabOrder;
+use App\Models\Laboratory\LabOrderItem;
+use App\Models\Laboratory\LabTest;
+use App\Models\Laboratory\LabTestParameter;
 use App\Models\Pharmacy\Prescription;
 use App\Models\Pharmacy\PrescriptionItem;
 use App\Models\Visit\Visit;
@@ -168,6 +173,64 @@ class ConsultationController extends Controller
             }
 
             Visit::where('id', $validated['visit_id'])->update(['status' => 'completed']);
+
+            if (!empty($validated['follow_up_date'])) {
+                FollowUp::create([
+                    'patient_id' => $consultation->patient_id,
+                    'doctor_id' => $consultation->doctor_id,
+                    'visit_id' => $consultation->visit_id,
+                    'consultation_id' => $consultation->id,
+                    'follow_up_date' => $validated['follow_up_date'],
+                    'notes' => $validated['notes'] ?? null,
+                    'status' => 'pending',
+                    'created_by' => auth()->id(),
+                ]);
+            }
+
+            if (!empty($validated['tests']) && is_array($validated['tests'])) {
+                $datePart = now()->format('Ymd');
+                $todayCount = LabOrder::whereDate('created_at', today())->count();
+                $orderNumber = 'LAB-' . $datePart . '-' . str_pad($todayCount + 1, 4, '0', STR_PAD_LEFT);
+
+                $labOrder = LabOrder::create([
+                    'consultation_id' => $consultation->id,
+                    'patient_id' => $consultation->patient_id,
+                    'doctor_id' => $consultation->doctor_id,
+                    'order_number' => $orderNumber,
+                    'status' => 'ordered',
+                    'notes' => $validated['lab_notes'] ?? null,
+                    'created_by' => auth()->id(),
+                ]);
+
+                foreach ($validated['tests'] as $testName) {
+                    $labTest = LabTest::firstOrCreate(
+                        ['name' => $testName],
+                        [
+                            'code' => str($testName)->slug('_')->toString(),
+                            'price' => 0,
+                            'is_active' => true,
+                            'created_by' => auth()->id(),
+                        ]
+                    );
+                    LabTestParameter::firstOrCreate(
+                        [
+                            'lab_test_id' => $labTest->id,
+                            'name' => 'Value',
+                        ],
+                        [
+                            'unit' => null,
+                            'reference_range' => null,
+                            'display_order' => 1,
+                            'is_active' => true,
+                        ]
+                    );
+                    LabOrderItem::create([
+                        'lab_order_id' => $labOrder->id,
+                        'lab_test_id' => $labTest->id,
+                        'status' => 'ordered',
+                    ]);
+                }
+            }
 
             DB::commit();
 

@@ -113,20 +113,6 @@
                                 <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ userRole }}</div>
                             </div>
 
-                            <a :href="safeRoute('profile.edit')"
-                                class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750"
-                                @click="closeUserMenu">
-                                <i class="fas fa-user text-gray-400 dark:text-gray-500 w-5"></i>
-                                <span>Profile</span>
-                            </a>
-
-                            <a href="/settings"
-                                class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750"
-                                @click="closeUserMenu">
-                                <i class="fas fa-cog text-gray-400 dark:text-gray-500 w-5"></i>
-                                <span>Settings</span>
-                            </a>
-
                             <hr class="my-1 border-gray-200 dark:border-gray-700" />
 
                             <button @click="showLogoutConfirm = true"

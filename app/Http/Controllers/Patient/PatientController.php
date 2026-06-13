@@ -61,9 +61,9 @@ public function index(Request $request)
         ],
 
         'can' => [
-            'create' => true,
-            'edit' => true,
-            'delete' => true,
+            'create' => $request->user()?->hasRole('admin') ?? false,
+            'edit' => $request->user()?->hasRole('admin') ?? false,
+            'delete' => $request->user()?->hasRole('admin') ?? false,
         ],
     ]);
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FollowUp\FollowUp;
 use App\Models\Doctor\Doctor;
 use App\Models\Patient\Patient;
+use App\Models\Visit\Visit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -63,19 +64,33 @@ class FollowUpController extends Controller
         return back()->with('success', 'Follow-up created successfully.');
     }
 
-    public function complete(Request $request, FollowUp $followUp)
+    public function complete(FollowUp $followUp)
     {
-        $validated = $request->validate([
-            'completed_notes' => 'nullable|string',
-        ]);
-
         $followUp->update([
             'status' => 'completed',
-            'completed_notes' => $validated['completed_notes'] ?? null,
             'completed_at' => now(),
         ]);
 
-        return back()->with('success', 'Follow-up marked as completed.');
+        $datePrefix = now()->format('ymd');
+        $lastVisit = Visit::where('doctor_id', $followUp->doctor_id)
+            ->whereDate('created_at', today())
+            ->orderByDesc('id')
+            ->first();
+        $seq = $lastVisit
+            ? str_pad((int) explode('-', $lastVisit->token_number)[3] + 1, 3, '0', STR_PAD_LEFT)
+            : '001';
+        $tokenNumber = 'TKN-' . $followUp->doctor_id . '-' . $datePrefix . '-' . $seq;
+
+        $visit = Visit::create([
+            'token_number' => $tokenNumber,
+            'patient_id' => $followUp->patient_id,
+            'doctor_id' => $followUp->doctor_id,
+            'visited_at' => now(),
+            'visit_type' => 'follow_up',
+            'status' => 'waiting',
+        ]);
+
+        return redirect()->route('consultations.create', $visit->id);
     }
 
     public function cancel(FollowUp $followUp)

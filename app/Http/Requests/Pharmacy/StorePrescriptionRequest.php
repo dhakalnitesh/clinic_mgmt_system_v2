@@ -14,7 +14,7 @@ class StorePrescriptionRequest extends FormRequest
             'patient_id'                     => ['required', 'integer', 'exists:patients,id'],
             'doctor_id'                      => ['required', 'integer', 'exists:doctors,id'],
             'encounter_id'                   => ['nullable', 'integer', 'exists:encounters,id'],
-            'prescription_date'              => ['required', 'date'],
+            'prescription_date'              => ['required', 'string'],
             'notes'                          => ['nullable', 'string'],
 
             'items'                          => ['required', 'array', 'min:1'],

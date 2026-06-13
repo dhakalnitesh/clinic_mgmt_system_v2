@@ -5,7 +5,6 @@ use App\Http\Controllers\Billing\BillingController;
 use App\Http\Controllers\Consultation\ConsultationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Doctor\DoctorController;
-use App\Http\Controllers\Doctor\DoctorDashboardController;
 use App\Http\Controllers\FollowUp\FollowUpController;
 use App\Http\Controllers\Laboratory\LabDashboardController;
 use App\Http\Controllers\Laboratory\LabOrderController;
@@ -46,78 +45,67 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('dashboard');
 
-// After the spatiee
-// Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-// up
-Route::resource('/patients', PatientController::class)->except(['show']);
-Route::get('/patients/{patient}/history', [PatientController::class, 'show'])->name('patients.show');
-Route::get('/doctor/dashboard',[DoctorDashboardController::class,'index'])->name('dashboard.index');
-Route::resource('/doctors', DoctorController::class);
-Route::patch('/visits/{visit}/cancel', [VisitController::class, 'cancel']);
+// ─── DOCTOR ROUTES (all auth, with per-route role guard) ──────
+Route::middleware(['auth'])->group(function () {
 
-// Follow-ups
-Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
-Route::post('/follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
-Route::patch('/follow-ups/{followUp}/complete', [FollowUpController::class, 'complete'])->name('follow-ups.complete');
-Route::patch('/follow-ups/{followUp}/cancel', [FollowUpController::class, 'cancel'])->name('follow-ups.cancel');
-
-
-Route::prefix('doctor')
-    ->name('doctor.')
-    ->group(function () {
-
-        Route::get('/dashboard', [DoctorDashboardController::class, 'index'])
-            ->name('dashboard');
-
-        Route::get('/patients', [PatientController::class, 'index'])
-            ->name('patients.index');
-
-        Route::get('/visits/today', [VisitController::class, 'today'])
-            ->name('visits.today');
-
-        Route::get('/consultations', [ConsultationController::class, 'index'])
-            ->name('consultations.index');
-
-        Route::get('/consultations/active', [ConsultationController::class, 'active'])
-            ->name('consultations.active');
-
-        Route::get('/prescriptions', [PrescriptionController::class, 'index'])
-            ->name('prescriptions.index');
-
-        // Route::get('/laboratory', [LaboratoryController::class, 'index'])
-        //     ->name('laboratory.index');
-
-        // Route::get('/followups', [FollowupController::class, 'index'])
-        //     ->name('followups.index');
-
-        Route::get('/profile', [ProfileController::class, 'index'])
-            ->name('profile');
-    });
-
-Route::resource('/visits', VisitController::class);
-Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus'])
-    ->name('appointments.updateStatus');
-Route::patch('/appointments/{id}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
-Route::resource('/appointments', AppointmentController::class);
-Route::get('/consultations/create/{visit}', [ConsultationController::class, 'create'])
-    ->name('consultations.create');
-Route::resource('/consultations', ConsultationController::class);
-Route::get(
-    '/prescriptions/{prescription}/print',
-    [PrescriptionController::class, 'print']
-)->name('prescriptions.print');
-Route::resource('prescriptions', PrescriptionController::class);
-
-// or the consultation based
-Route::prefix('consultations')->group(function () {
-
-    Route::get(
-        '/{consultation}/prescription',
-        [PrescriptionController::class, 'show']
-    );
+    Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
+    Route::get('/doctors/create', [DoctorController::class, 'create'])->name('doctors.create')->middleware('role:admin');
+    Route::post('/doctors', [DoctorController::class, 'store'])->name('doctors.store')->middleware('role:admin');
+    Route::get('/doctors/{doctor}', [DoctorController::class, 'show'])->name('doctors.show');
+    Route::get('/doctors/{doctor}/edit', [DoctorController::class, 'edit'])->name('doctors.edit')->middleware('role:admin');
+    Route::match(['put', 'patch'], '/doctors/{doctor}', [DoctorController::class, 'update'])->name('doctors.update')->middleware('role:admin');
+    Route::delete('/doctors/{doctor}', [DoctorController::class, 'destroy'])->name('doctors.destroy')->middleware('role:admin');
 });
 
-Route::middleware(['auth'])->prefix('laboratory')->name('laboratory.')->group(function () {
+// ─── GUEST (NON-ADMIN) FLOW ────────────────────────────────────
+Route::middleware(['auth'])->prefix('guest')->name('guest.')->group(function () {
+    Route::get('/patients/create', [\App\Http\Controllers\Guest\PatientController::class, 'create'])->name('patients.create');
+    Route::post('/patients', [\App\Http\Controllers\Guest\PatientController::class, 'store'])->name('patients.store');
+    Route::get('/appointments/create', [\App\Http\Controllers\Guest\AppointmentController::class, 'create'])->name('appointments.create');
+    Route::post('/appointments', [\App\Http\Controllers\Guest\AppointmentController::class, 'store'])->name('appointments.store');
+    Route::get('/doctors/available', [\App\Http\Controllers\Guest\AppointmentController::class, 'getDoctorsByDate'])->name('doctors.available');
+});
+
+// ─── ADMIN-ONLY ROUTES ─────────────────────────────────────────
+Route::middleware(['auth', 'role:admin'])->group(function () {
+
+    // Patients
+    Route::resource('/patients', PatientController::class)->except(['show']);
+    Route::get('/patients/{patient}/history', [PatientController::class, 'show'])
+        ->name('patients.show');
+
+    // Appointments
+    Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus'])
+        ->name('appointments.updateStatus');
+    Route::patch('/appointments/{id}/cancel', [AppointmentController::class, 'cancel'])
+        ->name('appointments.cancel');
+    Route::resource('/appointments', AppointmentController::class);
+
+    // Visits
+    Route::resource('/visits', VisitController::class);
+    Route::patch('/visits/{visit}/cancel', [VisitController::class, 'cancel']);
+
+    // Follow-ups
+    Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
+    Route::post('/follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
+    Route::patch('/follow-ups/{followUp}/complete', [FollowUpController::class, 'complete'])
+        ->name('follow-ups.complete');
+    Route::patch('/follow-ups/{followUp}/cancel', [FollowUpController::class, 'cancel'])
+        ->name('follow-ups.cancel');
+
+    // Consultations
+    Route::get('/consultations/create/{visit}', [ConsultationController::class, 'create'])
+        ->name('consultations.create');
+    Route::resource('/consultations', ConsultationController::class);
+    Route::get('/prescriptions/{prescription}/print', [PrescriptionController::class, 'print'])
+        ->name('prescriptions.print');
+    Route::resource('prescriptions', PrescriptionController::class);
+    Route::prefix('consultations')->group(function () {
+        Route::get('/{consultation}/prescription', [PrescriptionController::class, 'show']);
+    });
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('laboratory')->name('laboratory.')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [LabDashboardController::class, 'index'])
@@ -178,7 +166,7 @@ Route::middleware(['auth'])->prefix('laboratory')->name('laboratory.')->group(fu
 
 Route::prefix('pharmacy')
     ->name('pharmacy.')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
  
         // ── Dashboard ──────────────────────────────────────────────
@@ -294,7 +282,7 @@ Route::prefix('pharmacy')
 
 
 // Billing
-Route::prefix('billing')->name('billing.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('billing')->name('billing.')->group(function () {
     Route::get('/invoices', [BillingController::class, 'invoices'])->name('invoices');
     Route::get('/invoices/print-all', [BillingController::class, 'printAllInvoices'])->name('invoices.print-all');
     Route::get('/payments', [BillingController::class, 'payments'])->name('payments');
@@ -310,10 +298,12 @@ Route::prefix('billing')->name('billing.')->group(function () {
 });
 
 // Due Management
-Route::get('/dues', [\App\Http\Controllers\Due\DueController::class, 'index'])->name('dues.index');
+Route::get('/dues', [\App\Http\Controllers\Due\DueController::class, 'index'])
+    ->middleware(['auth', 'role:admin'])
+    ->name('dues.index');
 
 // Clinic Reports
-Route::prefix('reports')->name('reports.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('reports')->name('reports.')->group(function () {
     Route::get('/', [ClinicReportController::class, 'index'])->name('index');
     Route::get('/appointments', [ClinicReportController::class, 'appointments'])->name('appointments');
     Route::get('/revenue', [ClinicReportController::class, 'revenue'])->name('revenue');

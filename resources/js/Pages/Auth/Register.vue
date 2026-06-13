@@ -13,9 +13,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const submit = () => {
-    form.post(route('register'), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
-    })
+    form.post(route('register'))
 }
 </script>
 

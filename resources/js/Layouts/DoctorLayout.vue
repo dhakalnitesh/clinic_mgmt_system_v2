@@ -33,7 +33,7 @@
           <Link
             v-for="item in group.items"
             :key="item.route"
-            :href="route(item.route)"
+            :href="safeRoute(item.route)"
             class="nav-item"
             :class="{ active: isActiveRoute(item.route) }"
           >
@@ -63,7 +63,7 @@
           </span>
         </div>
         <div class="topbar-right">
-          <Link :href="route('doctor.consultations.active')" class="btn btn-primary btn-sm">
+          <Link :href="safeRoute('doctor.consultations.active')" class="btn btn-primary btn-sm">
             <i class="ti ti-stethoscope" /> Start Consultation
           </Link>
           <button class="btn btn-icon" @click="toggleNotifications">
@@ -110,8 +110,11 @@
 import { ref, computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import Toast from '@/Components/Toast.vue'
-// import { route } from 'ziggy-js'
-// import {route}
+
+function safeRoute(name, params) {
+    try { return route(name, params) } catch { return '#' }
+}
+
 const props = defineProps({
   title: { type: String, default: 'Dashboard' },
 })

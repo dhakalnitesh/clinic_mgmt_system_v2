@@ -2,6 +2,10 @@
 import { computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 
+function safeRoute(name, params) {
+    try { return route(name, params) } catch { return '#' }
+}
+
 const page = usePage()
 
 const doctor  = computed(() => page.props.auth?.doctor ?? {})
@@ -111,7 +115,7 @@ const statusOptions = ['Available', 'Busy', 'Break']
 
           <Link
             v-for="item in group.items" :key="item.id"
-            :href="route(item.route)"
+            :href="safeRoute(item.route)"
             class="nav-item"
             :class="{ 'nav-item--active': isActive(item.route) }"
           >

@@ -79,7 +79,7 @@ const form = useForm({
     medicines: [
       {
         medicine_id: '',
-        
+        medicine_name: '',
         dosage: '',
         frequency: '',
         duration: '',
@@ -113,9 +113,11 @@ const symptomsList = [
 const addMedicine = () => {
     form.medicines.push({
         medicine_id: '',
+        medicine_name: '',
         dosage: '',
         frequency: '',
         duration: '',
+        quantity: '',
         instruction: '',
     })
 }
@@ -768,7 +770,7 @@ const safeText = (value, fallback = '-') => {
                                     >
                                         <td class="px-6 py-4">
                                             <input
-                                                v-model="medicine.medicine_id"
+                                                v-model="medicine.medicine_name"
                                                 type="text"
                                                 placeholder="Medicine name"
                                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"

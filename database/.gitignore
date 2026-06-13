@@ -1,1 +1,2 @@
 *.sqlite*
+Failed to save consultation: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: 'Paracetamol' for column 'medicine_id' at row 1 (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: clinic_mgmt_upgradee, SQL: insert into `prescription_items` (`prescription_id`, `medicine_id`, `medicine_name`, `dosage_instruction`, `frequency`, `duration_days`, `instructions`, `quantity_prescribed`, `updated_at`, `created_at`) values (6, Paracetamol, ?, 500,g, 3 times, 4 days, After food, 12, 2026-06-13 05:39:06, 2026-06-13 05:39:06))

@@ -83,6 +83,13 @@
             Are you sure you want to
             <span class="font-semibold">{{ confirmAction.type === 'visit' ? 'mark this appointment as VISITED' : 'CANCEL this appointment' }}</span>?
           </p>
+
+          <div v-if="confirmAction.type === 'cancel'" class="mt-4">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Reason for cancellation</label>
+            <textarea v-model="cancelReason" rows="2" placeholder="Enter reason (optional)..."
+              class="w-full mt-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-200 focus:border-red-500 outline-none transition resize-none"></textarea>
+          </div>
+
           <div class="flex justify-end gap-3 mt-6">
             <button @click="closeConfirm" class="px-4 py-2 rounded-lg border dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">No</button>
             <button @click="executeAction" :class="confirmAction.type === 'visit' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'"
@@ -91,22 +98,19 @@
         </div>
       </div>
 
-      <CreateAppointmentModal v-if="showCreateModal" :patients="patients" :doctors="doctors"
+      <CreateAppointmentModal v-if="showCreateModal" :patients="patients" :doctors="doctors" :min-date="minDate" :max-date="maxDate"
         @close="showCreateModal = false" @success="refreshData" />
-      <CancelAppointmentModal v-if="deleteItem" :appointment="deleteItem"
-        @close="deleteItem = null" @success="refreshData" />
     </div>
   </AuthenticatedLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { ref, onMounted } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import FilterBar from '@/Components/FilterBar.vue'
 import Pagination from '@/Components/Pagination.vue'
 import CreateAppointmentModal from './CreateModal.vue'
-import CancelAppointmentModal from './CancelModal.vue'
 
 const props = defineProps({
   patients: [Array, Object],
@@ -114,13 +118,23 @@ const props = defineProps({
   appointments: [Array, Object],
   can: { type: Object, default: () => ({ create: true }) },
   filters: Object,
+  minDate: { type: String, default: '' },
+  maxDate: { type: String, default: '' },
 })
 
 const canCreate = ref(props.can?.create !== false)
 const showCreateModal = ref(false)
-const deleteItem = ref(null)
 const confirmAction = ref(null)
+const cancelReason = ref('')
 const openCreateModal = () => { showCreateModal.value = true }
+
+const page = usePage()
+onMounted(() => {
+  const errors = page.props.errors || {}
+  if (errors.patient_id || errors.doctor_id || errors.appointment_date || errors.appointment_time || errors.error) {
+    showCreateModal.value = true
+  }
+})
 
 const statusClass = (status) => {
   switch ((status || '').toLowerCase()) {
@@ -131,7 +145,10 @@ const statusClass = (status) => {
   }
 }
 
-const askConfirm = (type, item) => { confirmAction.value = { type, item } }
+const askConfirm = (type, item) => {
+  confirmAction.value = { type, item }
+  cancelReason.value = ''
+}
 const closeConfirm = () => { confirmAction.value = null }
 
 const executeAction = () => {
@@ -143,7 +160,10 @@ const executeAction = () => {
     })
   }
   if (type === 'cancel') {
-    router.patch(route('appointments.cancel', item.id), { status: 'cancelled' }, {
+    router.patch(route('appointments.cancel', item.id), {
+      status: 'cancelled',
+      reasons: cancelReason.value,
+    }, {
       preserveScroll: true,
       onSuccess: () => { item.status = 'cancelled'; closeConfirm() }
     })

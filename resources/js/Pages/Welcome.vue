@@ -225,7 +225,7 @@ const stats = [
 
                 <!-- ── Stats strip ──────────────────────────────────────── -->
                 <section class="mb-12">
-                    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    <!-- <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
                         <div
                             v-for="stat in stats"
                             :key="stat.label"
@@ -234,7 +234,7 @@ const stats = [
                             <p class="text-2xl font-bold text-teal-600 dark:text-teal-400">{{ stat.value }}</p>
                             <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-medium">{{ stat.label }}</p>
                         </div>
-                    </div>
+                    </div> -->
                 </section>
 
                 <!-- ── Features grid ────────────────────────────────────── -->

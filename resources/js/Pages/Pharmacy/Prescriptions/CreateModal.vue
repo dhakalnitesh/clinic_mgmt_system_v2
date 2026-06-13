@@ -264,7 +264,10 @@ function submit() {
     items: data.items.map(({ _key, strength, form: f, ...rest }) => rest),
   })).post(route('pharmacy.prescriptions.store'), {
     preserveScroll: true,
-    onSuccess: () => emit('success'),
+    onSuccess: () => {
+      emit('success')
+      emit('close')
+    },
   })
 }
 </script>

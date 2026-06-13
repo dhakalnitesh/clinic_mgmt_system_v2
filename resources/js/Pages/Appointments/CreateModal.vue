@@ -8,6 +8,8 @@ import NepaliDatepicker from '@/Components/NepaliDatepicker.vue'
 const props = defineProps({
   patients: Array,
   doctors: Array,
+  minDate: { type: String, default: '' },
+  maxDate: { type: String, default: '' },
 })
 
 const emit = defineEmits(['close'])
@@ -15,9 +17,19 @@ const emit = defineEmits(['close'])
 const showPatientModal = ref(false)
 
 /**
- * Backend validation errors
+ * Local validation errors (not from page props)
  */
-const errors = usePage().props.errors
+const localErrors = ref({})
+
+/**
+ * Merge page-level errors (from a fresh redirect)
+ * with locally captured errors (from onError).
+ * Local errors take precedence.
+ */
+const displayErrors = computed(() => {
+  const pageErrors = usePage().props.errors || {}
+  return { ...pageErrors, ...localErrors.value }
+})
 
 /**
  * Dynamic available doctors
@@ -116,11 +128,17 @@ const addPatient = (patient) => {
  * Submit appointment
  */
 const submit = () => {
-
+  localErrors.value = {}
   router.post(route('appointments.store'), form, {
     preserveScroll: true,
-
-    onSuccess: () => emit('close'),
+    preserveState: true,
+    onSuccess: () => {
+      emit('close')
+      router.reload({ only: ['appointments'] })
+    },
+    onError: (err) => {
+      localErrors.value = err
+    },
   })
 }
 </script>
@@ -143,12 +161,12 @@ const submit = () => {
 
       </div>
 
-      <p v-if="$page.props.errors.patient_id" class="text-red-500 text-sm">
-        {{ $page.props.errors.patient_id }}
+      <p v-if="displayErrors.patient_id" class="text-red-500 text-sm">
+        {{ displayErrors.patient_id }}
       </p>
 
-      <p v-if="$page.props.errors.error" class="text-red-500 text-sm">
-        {{ $page.props.errors.error }}
+      <p v-if="displayErrors.error" class="text-red-500 text-sm">
+        {{ displayErrors.error }}
       </p>
 
       <!-- Form -->
@@ -173,7 +191,8 @@ const submit = () => {
           <div class="flex gap-2">
 
             <select v-model="form.patient_id"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition">
+              class="w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition"
+              :class="displayErrors.patient_id ? 'border-red-500 bg-red-50' : 'border-gray-300'">
               <option value="">Select Patient</option>
 
               <option v-for="p in patients" :key="p.id" :value="p.id">
@@ -185,8 +204,8 @@ const submit = () => {
           </div>
 
           <!-- Error -->
-          <p v-if="errors.patient_id" class="text-sm text-red-500 mt-1">
-            {{ errors.patient_id }}
+          <p v-if="displayErrors.patient_id" class="text-sm text-red-500 mt-1">
+            {{ displayErrors.patient_id }}
           </p>
 
         </div>
@@ -198,11 +217,13 @@ const submit = () => {
             Date (BS)
           </label>
 
-          <NepaliDatepicker v-model="form.appointment_date" placeholder="Select Nepali date" />
+          <div :class="displayErrors.appointment_date ? 'border border-red-500 rounded-lg bg-red-50' : ''">
+            <NepaliDatepicker v-model="form.appointment_date" placeholder="Select Nepali date" :min-date="minDate" :max-date="maxDate" />
+          </div>
 
           <!-- Error -->
-          <p v-if="errors.appointment_date" class="text-sm text-red-500 mt-1">
-            {{ errors.appointment_date }}
+          <p v-if="displayErrors.appointment_date" class="text-sm text-red-500 mt-1">
+            {{ displayErrors.appointment_date }}
           </p>
 
         </div>
@@ -215,11 +236,12 @@ const submit = () => {
           </label>
 
           <input v-model="form.appointment_time" type="time"
-            class="border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition" />
+            class="border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition"
+            :class="displayErrors.appointment_time ? 'border-red-500 bg-red-50' : 'border-gray-300'" />
 
           <!-- Error -->
-          <p v-if="errors.appointment_time" class="text-sm text-red-500 mt-1">
-            {{ errors.appointment_time }}
+          <p v-if="displayErrors.appointment_time" class="text-sm text-red-500 mt-1">
+            {{ displayErrors.appointment_time }}
           </p>
 
         </div>
@@ -232,7 +254,8 @@ const submit = () => {
           </label>
 
           <select v-model="form.doctor_id"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition">
+            class="w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition"
+            :class="displayErrors.doctor_id ? 'border-red-500 bg-red-50' : 'border-gray-300'">
             <option value="">Select Doctor</option>
 
             <option v-for="d in availableDoctors" :key="d.id" :value="d.id">
@@ -242,8 +265,8 @@ const submit = () => {
           </select>
 
           <!-- Error -->
-          <p v-if="errors.doctor_id" class="text-sm text-red-500 mt-1">
-            {{ errors.doctor_id }}
+          <p v-if="displayErrors.doctor_id" class="text-sm text-red-500 mt-1">
+            {{ displayErrors.doctor_id }}
           </p>
 
         </div>

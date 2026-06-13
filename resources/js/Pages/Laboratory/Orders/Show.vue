@@ -222,13 +222,13 @@ const statusClass = (status) => {
                 Start Processing
             </button>
 
-            <button
+            <Link
                 v-if="labOrder.status === 'processing'"
-                @click="updateStatus('laboratory.orders.complete')"
+                :href="route('laboratory.orders.results.create', labOrder.id)"
                 class="rounded-xl bg-emerald-600 px-5 py-3 text-white"
             >
-                Complete Order
-            </button>
+                Enter Results
+            </Link>
 
             <Link
                 :href="route('laboratory.orders.index')"

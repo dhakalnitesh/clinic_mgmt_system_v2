@@ -37,7 +37,7 @@
             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Phone</th>
             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Availability</th>
             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Registered (BS)</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 w-36">Actions</th>
+            <th v-if="canEdit || canDelete" class="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 w-36">Actions</th>
           </tr>
         </thead>
 
@@ -67,7 +67,7 @@
             <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ d.created_at_bs || '--' }}</td>
 
             <!-- Actions -->
-            <td class="px-6 py-4 flex gap-3 text-lg">
+            <td v-if="canEdit || canDelete" class="px-6 py-4 flex gap-3 text-lg">
               <Link :href="route('doctors.show', d.id)" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300" title="Show">
                 <i class="fas fa-eye"></i>
               </Link>
@@ -81,7 +81,7 @@
           </tr>
 
         <tr v-if="!doctors.data.length">
-            <td colspan="8" class="text-center py-10 text-gray-500 dark:text-gray-400">No doctors found</td>
+            <td :colspan="canEdit || canDelete ? 8 : 7" class="text-center py-10 text-gray-500 dark:text-gray-400">No doctors found</td>
           </tr>
         </tbody>
       </table>

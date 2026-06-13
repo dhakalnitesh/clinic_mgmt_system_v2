@@ -42,9 +42,9 @@ class DoctorController extends Controller
                 'per_page' => $request->per_page ?? 10,
             ],
             'can' => [
-                'create' => true,
-                'edit' => true,
-                'delete' => true,
+                'create' => $request->user()?->hasRole('admin') ?? false,
+                'edit' => $request->user()?->hasRole('admin') ?? false,
+                'delete' => $request->user()?->hasRole('admin') ?? false,
             ]
         ]);
     }

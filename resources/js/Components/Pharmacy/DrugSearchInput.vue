@@ -205,10 +205,11 @@ function onInput() {
 
 function selectMedicine(med) {
   if (med.stock_status === 'out_of_stock') return
-  query.value   = `${med.name}${med.strength ? ' ' + med.strength : ''}`
+  emit('select', med)
+  query.value   = ''
   isOpen.value  = false
   results.value = []
-  emit('select', med)
+  inputRef.value?.focus()
 }
 
 function selectHighlighted() {

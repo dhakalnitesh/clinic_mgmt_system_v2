@@ -15,7 +15,7 @@
                     </p>
                 </div>
 
-                <div class="bg-gradient-to-r from-teal-600 to-teal-700 rounded-2xl p-5 shadow-lg text-white flex items-center gap-4">
+                <div class="bg-gradient-to-r from-teal-600 to-teal-700 rounded-2xl p-2 shadow-lg text-white flex items-center gap-4">
                     <div class="flex items-center justify-center size-12 rounded-xl bg-white/20">
                         <i class="fas fa-heartbeat text-2xl"></i>
                     </div>

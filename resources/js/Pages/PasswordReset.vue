@@ -20,9 +20,7 @@ const passFocused = ref(false);
 const confFocused = ref(false);
 
 function submit() {
-    form.post(route('password.store'), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
-    });
+    form.post(route('password.store'));
 }
 
 const passStrength = computed(() => {
